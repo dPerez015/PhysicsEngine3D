@@ -3,8 +3,15 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <iostream>
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw_gl3.h>
+#include "MouseEvent.h"
 
 extern void GLResize(int width, int height);
+extern void GLInit(int width, int height);
+extern void GLRender();
+extern void GLCleanup();
+extern void GLmousecb(MouseEvent ev);
 
 //Function called when there's a change in windows size, changes the size of the viewport
 void GLFWwindowresize(GLFWwindow*, int w, int h) {
@@ -15,6 +22,7 @@ void GLFWwindowresize(GLFWwindow*, int w, int h) {
 void error_callback(int error, const char* description) {
 	std::cerr << "GLFW Error: " << description << std::endl;
 }
+
 
 int main() {
 	//initialize GLFW library
@@ -49,15 +57,35 @@ int main() {
 	}
 	std::cout << "GLEW: Version:	" << glewGetString(GLEW_VERSION);
 	
+	//initialize Rendering
+	int display_w, display_h;
+	glfwGetFramebufferSize(window, &display_w, &display_h);
+
+	//setup scene rendering
+	GLInit(display_w, display_h);
+
+	// Setup ImGui binding
+	ImGui_ImplGlfwGL3_Init(window, true);
+
 	//main loop
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
+		ImGui_ImplGlfwGL3_NewFrame();
+		ImGuiIO& io = ImGui::GetIO();
+		if (!io.WantCaptureMouse) {
+			MouseEvent ev = { io.MousePos.x, io.MousePos.y,
+				(io.MouseDown[0] ? MouseEvent::Button::Left :
+				(io.MouseDown[1] ? MouseEvent::Button::Right :
+				(io.MouseDown[2] ? MouseEvent::Button::Middle :
+				MouseEvent::Button::None))) };
+			GLmousecb(ev);
+		}
+		GLRender();
 
-		
+		glfwSwapBuffers(window);
 	}
 
-
-
+	GLCleanup();
 	//Destroy the window
 	glfwDestroyWindow(window);
 

@@ -1,13 +1,67 @@
-#include <GLFW/glfw3.h>
 #include <GL/glew.h>
-//#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "MouseEvent.h"
 
 const float FOV = glm::radians(65.f);
 const float zNear = 1.f;
 const float zFar = 50.f;
 
 glm::mat4 _projection;
+glm::mat4 _MVP;
+glm::mat4 _modelView;
+glm::mat4 _inv_modelview;
+glm::vec4 _cameraPoint;
+
+
+struct prevMouse {
+	float lastx, lasty;
+	MouseEvent::Button button = MouseEvent::Button::None;
+	bool waspressed = false;
+} prevMouse;
+
+float panv[3] = { 0.f, -5.f, -15.f };
+float rota[2] = { 0.f, 0.f };
+
+namespace Box {
+	extern void setupCube();
+	extern void cleanupCube();
+	extern void drawCube();
+}
+namespace Axis {
+	extern void setupAxis();
+	extern void cleanupAxis();
+	extern void drawAxis();
+}
+
+
+void GLmousecb(MouseEvent ev) {
+	if (prevMouse.waspressed && prevMouse.button == ev.button) {
+		float diffx = ev.posx - prevMouse.lastx;
+		float diffy = ev.posy - prevMouse.lasty;
+		switch (ev.button) {
+		case MouseEvent::Button::Left: //ROTATE
+			rota[0] += diffx * 0.005f;
+			rota[1] += diffy * 0.005f;
+			break;
+		case MouseEvent::Button::Right: //MOVE XY
+			panv[0] += diffx * 0.03f;
+			panv[1] -= diffy * 0.03f;
+			break;
+		case MouseEvent::Button::Middle: //MOVE Z
+			panv[2] += diffy * 0.05f;
+			break;
+		default: break;
+		}
+	}
+	else {
+		prevMouse.button = ev.button;
+		prevMouse.waspressed = true;
+	}
+	prevMouse.lastx = ev.posx;
+	prevMouse.lasty = ev.posy;
+}
+
 
 //resize window rendering after a resize from glfw (function called has callback)
 void GLResize(int w, int h) {
@@ -17,9 +71,40 @@ void GLResize(int w, int h) {
 }
 
 //init rendering
+void GLInit(int width, int height) {
+	//set the viewport size in pixels
+	glViewport(0, 0, width, height);
+	//clear color value
+	glClearColor(0.2f, 0.2f, 0.2f, 1.f);
+	glClearDepth(1.f);
+	glDepthFunc(GL_LEQUAL);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 
+	_projection = glm::perspective(FOV, (float)width / (float)height, zNear, zFar);
+
+	Box::setupCube();
+	Axis::setupAxis();
+}
 
 //render
+void GLRender() {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	_modelView = glm::mat4(1.f);
+	_modelView = glm::translate(_modelView, glm::vec3(panv[0], panv[1], panv[2]));
+	_modelView = glm::rotate(_modelView, rota[1], glm::vec3(1.f, 0.f, 0.f));
+	_modelView = glm::rotate(_modelView, rota[0], glm::vec3(0.f, 1.f, 0.f));
+
+	_MVP = _projection * _modelView;
+
+	Box::drawCube();
+	Axis::drawAxis();
+}
 
 
 //cleanup
+
+void GLCleanup() {
+	Box::cleanupCube();
+}
