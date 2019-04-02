@@ -12,6 +12,7 @@ extern void GLInit(int width, int height);
 extern void GLRender();
 extern void GLCleanup();
 extern void GLmousecb(MouseEvent ev);
+extern void PhysicsInit();
 
 //Function called when there's a change in windows size, changes the size of the viewport
 void GLFWwindowresize(GLFWwindow*, int w, int h) {
@@ -27,14 +28,14 @@ void error_callback(int error, const char* description) {
 int main() {
 	//initialize GLFW library
 	if (!glfwInit()) {
-		fprintf(stderr, "Couldn't initialize GLFW\n");
+		std::cerr << "Couldn't initialize GLFW\n";
 		return -1;
 	}
 	//set callback function for glfw functions error
 	glfwSetErrorCallback(error_callback);
 
 	//I want opengl 3
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
 	//Create window
@@ -42,7 +43,7 @@ int main() {
 	
 	if (!window) {
 		glfwTerminate();
-		std::cout << "Window creation failed\n";
+		std::cerr << "Window creation failed\n";
 		return -1;
 	}
 
@@ -53,10 +54,12 @@ int main() {
 	//glew init
 	GLenum err = glewInit();
 	if (GLEW_OK != err) {
-		std::cout << "Error:	" << glewGetErrorString(err)<<std::endl;
+		std::cerr << "Error:	" << glewGetErrorString(err)<<std::endl;
 	}
 	std::cout << "GLEW: Version:	" << glewGetString(GLEW_VERSION);
 	
+
+
 	//initialize Rendering
 	int display_w, display_h;
 	glfwGetFramebufferSize(window, &display_w, &display_h);
@@ -66,6 +69,9 @@ int main() {
 
 	// Setup ImGui binding
 	ImGui_ImplGlfwGL3_Init(window, true);
+
+	//initialize Physics
+	PhysicsInit();
 
 	//main loop
 	while (!glfwWindowShouldClose(window)) {

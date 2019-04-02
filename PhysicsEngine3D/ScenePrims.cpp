@@ -4,6 +4,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 extern glm::mat4 _MVP;
+extern glm::mat4 _modelView;
+extern glm::mat4 _projection;
 
 /////////////////////////////////////////////////
 GLuint compileShader(const char* shaderStr, GLenum shaderType, const char* name = "") {
@@ -228,3 +230,209 @@ void main() {\n\
 		glBindVertexArray(0);
 	}
 }
+
+
+//////////////////////////////////////////////////SPHERE
+#pragma region SPHERE
+
+namespace Sphere {
+	GLuint sphereVao;
+	GLuint sphereVbo;
+	GLuint sphereShaders[3];
+	GLuint sphereProgram;
+	float radius;
+
+	const char* sphere_vertShader =
+		"#version 330\n\
+in vec3 in_Position;\n\
+uniform mat4 mv_Mat;\n\
+void main() {\n\
+	gl_Position = mv_Mat * vec4(in_Position, 1.0);\n\
+}";
+	const char* sphere_geomShader =
+		"#version 330\n\
+layout(points) in;\n\
+layout(triangle_strip, max_vertices = 4) out;\n\
+out vec4 eyePos;\n\
+out vec4 centerEyePos;\n\
+uniform mat4 projMat;\n\
+uniform float radius;\n\
+vec4 nu_verts[4];\n\
+void main() {\n\
+	vec3 n = normalize(-gl_in[0].gl_Position.xyz);\n\
+	vec3 up = vec3(0.0, 1.0, 0.0);\n\
+	vec3 u = normalize(cross(up, n));\n\
+	vec3 v = normalize(cross(n, u));\n\
+	nu_verts[0] = vec4(-radius*u - radius*v, 0.0); \n\
+	nu_verts[1] = vec4( radius*u - radius*v, 0.0); \n\
+	nu_verts[2] = vec4(-radius*u + radius*v, 0.0); \n\
+	nu_verts[3] = vec4( radius*u + radius*v, 0.0); \n\
+	centerEyePos = gl_in[0].gl_Position;\n\
+	for (int i = 0; i < 4; ++i) {\n\
+		eyePos = (gl_in[0].gl_Position + nu_verts[i]);\n\
+		gl_Position = projMat * eyePos;\n\
+		EmitVertex();\n\
+	}\n\
+	EndPrimitive();\n\
+}";
+	const char* sphere_fragShader_flatColor =
+		"#version 330\n\
+in vec4 eyePos;\n\
+in vec4 centerEyePos;\n\
+out vec4 out_Color;\n\
+uniform mat4 projMat;\n\
+uniform mat4 mv_Mat;\n\
+uniform vec4 color;\n\
+uniform float radius;\n\
+void main() {\n\
+	vec4 diff = eyePos - centerEyePos;\n\
+	float distSq2C = dot(diff, diff);\n\
+	if (distSq2C > (radius*radius)) discard;\n\
+	float h = sqrt(radius*radius - distSq2C);\n\
+	vec4 nuEyePos = vec4(eyePos.xy, eyePos.z + h, 1.0);\n\
+	vec4 nuPos = projMat * nuEyePos;\n\
+	gl_FragDepth = ((nuPos.z / nuPos.w) + 1) * 0.5;\n\
+	vec3 normal = normalize(nuEyePos - centerEyePos).xyz;\n\
+	out_Color = vec4(color.xyz * dot(normal, (mv_Mat*vec4(0.0, 1.0, 0.0, 0.0)).xyz) + color.xyz * 0.3, 1.0 );\n\
+}";
+
+	bool shadersCreated = false;
+	void createSphereShaderAndProgram() {
+		if (shadersCreated) return;
+
+		sphereShaders[0] = compileShader(sphere_vertShader, GL_VERTEX_SHADER, "sphereVert");
+		sphereShaders[1] = compileShader(sphere_geomShader, GL_GEOMETRY_SHADER, "sphereGeom");
+		sphereShaders[2] = compileShader(sphere_fragShader_flatColor, GL_FRAGMENT_SHADER, "sphereFrag");
+
+		sphereProgram = glCreateProgram();
+		glAttachShader(sphereProgram, sphereShaders[0]);
+		glAttachShader(sphereProgram, sphereShaders[1]);
+		glAttachShader(sphereProgram, sphereShaders[2]);
+		glBindAttribLocation(sphereProgram, 0, "in_Position");
+		linkProgram(sphereProgram);
+
+		shadersCreated = true;
+	}
+	void cleanupSphereShaderAndProgram() {
+		if (!shadersCreated) return;
+		glDeleteProgram(sphereProgram);
+		glDeleteShader(sphereShaders[0]);
+		glDeleteShader(sphereShaders[1]);
+		glDeleteShader(sphereShaders[2]);
+		shadersCreated = false;
+	}
+
+	void setupSphere(glm::vec3 pos, float radius) {
+		Sphere::radius = radius;
+		glGenVertexArrays(1, &sphereVao);
+		glBindVertexArray(sphereVao);
+		glGenBuffers(1, &sphereVbo);
+
+		glBindBuffer(GL_ARRAY_BUFFER, sphereVbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3, &pos, GL_DYNAMIC_DRAW);
+		glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		createSphereShaderAndProgram();
+	}
+	void cleanupSphere() {
+		glDeleteBuffers(1, &sphereVbo);
+		glDeleteVertexArrays(1, &sphereVao);
+
+		cleanupSphereShaderAndProgram();
+	}
+	void updateSphere(glm::vec3 pos, float radius) {
+		glBindBuffer(GL_ARRAY_BUFFER, sphereVbo);
+		float* buff = (float*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		buff[0] = pos.x;
+		buff[1] = pos.y;
+		buff[2] = pos.z;
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		Sphere::radius = radius;
+	}
+	void drawSphere() {
+		glBindVertexArray(sphereVao);
+		glUseProgram(sphereProgram);
+		glUniformMatrix4fv(glGetUniformLocation(sphereProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(_MVP));
+		glUniformMatrix4fv(glGetUniformLocation(sphereProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(_modelView));
+		glUniformMatrix4fv(glGetUniformLocation(sphereProgram, "projMat"), 1, GL_FALSE, glm::value_ptr(_projection));
+		glUniform4f(glGetUniformLocation(sphereProgram, "color"), 0.6f, 0.1f, 0.1f, 1.f);
+		glUniform1f(glGetUniformLocation(sphereProgram, "radius"), Sphere::radius);
+		glDrawArrays(GL_POINTS, 0, 1);
+
+		glUseProgram(0);
+		glBindVertexArray(0);
+	}
+}
+#pragma endregion
+
+
+//////////////////////////////////////////////////PARTICLES
+#pragma region PARTICLES
+
+//Same rendering as Sphere (reusing shaderss)
+namespace LilSpheres {
+	GLuint particlesVao;
+	GLuint particlesVbo;//creo que aqui estan guardadas las posiciones de las particulas
+	float radius;
+	float lifeTime;
+	int numparticles;
+	//extern const int maxParticles = SHRT_MAX;
+	extern const int maxParticles = 27000;
+
+	void setupParticles(int numTotalParticles, float radius, float lifeT) {
+		assert(numTotalParticles > 0);
+		assert(numTotalParticles <= SHRT_MAX);
+		numparticles = numTotalParticles;
+		LilSpheres::radius = radius;
+		LilSpheres::lifeTime = lifeT;
+
+		glGenVertexArrays(1, &particlesVao);
+		glBindVertexArray(particlesVao);
+		glGenBuffers(1, &particlesVbo);
+
+		glBindBuffer(GL_ARRAY_BUFFER, particlesVbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * numparticles, 0, GL_DYNAMIC_DRAW);
+		glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		Sphere::createSphereShaderAndProgram();
+	}
+	void cleanupParticles() {
+		glDeleteVertexArrays(1, &particlesVao);
+		glDeleteBuffers(1, &particlesVbo);
+
+		Sphere::cleanupSphereShaderAndProgram();
+	}
+	void updateParticles(int startIdx, int count, float* array_data) {// startIDx es el punto de inicio, count es el numero de particulas que actualizamos, array_data es un array con las nuevas posiciones
+		glBindBuffer(GL_ARRAY_BUFFER, particlesVbo);
+		float* buff = (float*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		buff = &buff[startIdx];
+		for (int i = 0; i < 3 * count; ++i) {
+			buff[i] = array_data[i + startIdx];
+		}
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+	void drawParticles(int startIdx, int count) {
+		glBindVertexArray(particlesVao);
+		glUseProgram(Sphere::sphereProgram);
+		glUniformMatrix4fv(glGetUniformLocation(Sphere::sphereProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(_MVP));
+		glUniformMatrix4fv(glGetUniformLocation(Sphere::sphereProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(_modelView));
+		glUniformMatrix4fv(glGetUniformLocation(Sphere::sphereProgram, "projMat"), 1, GL_FALSE, glm::value_ptr(_projection));
+		glUniform4f(glGetUniformLocation(Sphere::sphereProgram, "color"), 0.1f, 0.1f, 0.6f, 1.f);
+		glUniform1f(glGetUniformLocation(Sphere::sphereProgram, "radius"), LilSpheres::radius);
+		glDrawArrays(GL_POINTS, startIdx, count);
+
+		glUseProgram(0);
+		glBindVertexArray(0);
+	}
+}
+#pragma endregion

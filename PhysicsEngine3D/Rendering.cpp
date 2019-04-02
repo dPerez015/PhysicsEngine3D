@@ -33,6 +33,19 @@ namespace Axis {
 	extern void cleanupAxis();
 	extern void drawAxis();
 }
+namespace Sphere {
+	extern void setupSphere(glm::vec3 pos = glm::vec3(0.f, 1.f, 0.f), float radius = 1.f);
+	extern void cleanupSphere();
+	extern void updateSphere(glm::vec3 pos, float radius = 1.f);
+	extern void drawSphere();
+}
+namespace LilSpheres {
+	extern const int maxParticles;
+	extern void setupParticles(int numTotalParticles, float radius = 0.05f, float lifeT = 5.0f);
+	extern void cleanupParticles();
+	extern void updateParticles(int startIdx, int count, float* array_data);
+	extern void drawParticles(int startIdx, int count);
+}
 
 
 void GLmousecb(MouseEvent ev) {
@@ -85,6 +98,9 @@ void GLInit(int width, int height) {
 
 	Box::setupCube();
 	Axis::setupAxis();
+
+	Sphere::setupSphere();
+	LilSpheres::setupParticles(LilSpheres::maxParticles);
 }
 
 //render
@@ -100,6 +116,7 @@ void GLRender() {
 
 	Box::drawCube();
 	Axis::drawAxis();
+	LilSpheres::drawParticles(0, SHRT_MAX);
 }
 
 
@@ -107,4 +124,7 @@ void GLRender() {
 
 void GLCleanup() {
 	Box::cleanupCube();
+	Axis::cleanupAxis();
+	Sphere::cleanupSphere();
+	LilSpheres::cleanupParticles();
 }
