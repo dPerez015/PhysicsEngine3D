@@ -55,14 +55,14 @@ void PhysicsInit() {
 
 	LilSpheres::updateParticles(0, LilSpheres::maxParticles , onlyPositions);*/
 
-	computeShader = ComputeShader("..\Shaders\compute.cs");
+	computeShader = ComputeShader("../Shaders/compute.comp");
 	computeShader.initiateBuffers();
 	LilSpheres::particlesVbo = computeShader.dataBuffers[0];
 	LilSpheres::setupParticles(LilSpheres::maxParticles);
 }
 
 void PhysicsUpdate(float dt) {
-
+	computeShader.activate(dt);
 }
 
 void PhysicsCleanup() {

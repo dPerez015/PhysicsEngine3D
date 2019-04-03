@@ -158,6 +158,9 @@ xcopy "$(ProjectDir)..\libs\glfw3.dll" "$(OutDir)" /y /d</Command>
     <ClInclude Include="MouseEvent.h" />
     <ClInclude Include="Particle.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\compute.comp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

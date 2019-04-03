@@ -244,10 +244,10 @@ namespace Sphere {
 
 	const char* sphere_vertShader =
 		"#version 330\n\
-in vec3 in_Position;\n\
+in vec4 in_Position;\n\
 uniform mat4 mv_Mat;\n\
 void main() {\n\
-	gl_Position = mv_Mat * vec4(in_Position, 1.0);\n\
+	gl_Position = mv_Mat * vec4(in_Position);\n\
 }";
 	const char* sphere_geomShader =
 		"#version 330\n\
@@ -329,7 +329,7 @@ void main() {\n\
 		glGenBuffers(1, &sphereVbo);
 
 		glBindBuffer(GL_ARRAY_BUFFER, sphereVbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3, &pos, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4, &pos, GL_DYNAMIC_DRAW);
 		glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(0);
 
@@ -350,6 +350,7 @@ void main() {\n\
 		buff[0] = pos.x;
 		buff[1] = pos.y;
 		buff[2] = pos.z;
+		buff[3] = 1.f;
 		glUnmapBuffer(GL_ARRAY_BUFFER);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		Sphere::radius = radius;
@@ -382,7 +383,7 @@ namespace LilSpheres {
 	float lifeTime;
 	int numparticles;
 	//extern const int maxParticles = SHRT_MAX;
-	extern const int maxParticles = 1000000;
+	extern const int maxParticles = 1024*1024;
 
 	void setupParticles(int numTotalParticles, float radius, float lifeT) {
 		assert(numTotalParticles > 0);
@@ -396,8 +397,8 @@ namespace LilSpheres {
 		//glGenBuffers(1, &particlesVbo);
 
 		glBindBuffer(GL_ARRAY_BUFFER, particlesVbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * numparticles, 0, GL_DYNAMIC_DRAW);
-		glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		//glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * numparticles, 0, GL_DYNAMIC_DRAW);
+		glVertexAttribPointer((GLuint)0, 4, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(0);
 
 		glBindVertexArray(0);
@@ -410,16 +411,6 @@ namespace LilSpheres {
 		glDeleteBuffers(1, &particlesVbo);
 
 		Sphere::cleanupSphereShaderAndProgram();
-	}
-	void updateParticles(int startIdx, int count, float* array_data) {// startIDx es el punto de inicio, count es el numero de particulas que actualizamos, array_data es un array con las nuevas posiciones
-		glBindBuffer(GL_ARRAY_BUFFER, particlesVbo);
-		float* buff = (float*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-		buff = &buff[startIdx];
-		for (int i = 0; i < 3 * count; ++i) {
-			buff[i] = array_data[i + startIdx];
-		}
-		glUnmapBuffer(GL_ARRAY_BUFFER);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	void drawParticles(int startIdx, int count) {
 		glBindVertexArray(particlesVao);

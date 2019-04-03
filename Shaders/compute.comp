@@ -1,2 +1,21 @@
 #version 430
-layout(std430, binding = 0) buffer Pos{vec3 pos[]}
+layout(std430, binding = 0) buffer Pos{vec4 pos[];};
+layout(std430, binding = 1) buffer Vel{vec4 vel[];};
+layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
+
+uniform float DT;
+uniform vec4 spherePos;
+const float G = 9.8;
+
+void main(){
+	uint gid = gl_GlobalInvocationID.x;
+	vec4 p = pos[gid];
+	vec4 v = vel[gid];
+	vec4 force = G*normalize(vec4(spherePos.xyz,p.w)-p);
+	vec4 newVel = v + (force*DT);
+	vec4 newPos = p + newVel*DT; 
+	//if(length(newPos.xyz)
+
+	pos[gid] = newPos;
+	vel[gid] = newVel;
+}

@@ -13,7 +13,7 @@ extern void GLRender();
 extern void GLCleanup();
 extern void GLmousecb(MouseEvent ev);
 extern void PhysicsInit();
-
+extern void PhysicsUpdate(float);
 //Function called when there's a change in windows size, changes the size of the viewport
 void GLFWwindowresize(GLFWwindow*, int w, int h) {
 	GLResize(w, h);
@@ -23,6 +23,9 @@ void GLFWwindowresize(GLFWwindow*, int w, int h) {
 void error_callback(int error, const char* description) {
 	std::cerr << "GLFW Error: " << description << std::endl;
 }
+
+
+
 
 
 int main() {
@@ -56,7 +59,7 @@ int main() {
 	if (GLEW_OK != err) {
 		std::cerr << "Error:	" << glewGetErrorString(err)<<std::endl;
 	}
-	std::cout << "GLEW: Version:	" << glewGetString(GLEW_VERSION);
+	std::cout << "GLEW: Version:	" << glewGetString(GLEW_VERSION)<<std::endl;
 	
 
 
@@ -72,9 +75,14 @@ int main() {
 
 	//initialize Physics
 	PhysicsInit();
-
+	double previusTime = glfwGetTime();
+	double currentTime = previusTime;
+	float deltaTime;
 	//main loop
 	while (!glfwWindowShouldClose(window)) {
+		currentTime = glfwGetTime();
+		deltaTime = currentTime - previusTime;
+
 		glfwPollEvents();
 		ImGui_ImplGlfwGL3_NewFrame();
 		ImGuiIO& io = ImGui::GetIO();
@@ -86,9 +94,12 @@ int main() {
 				MouseEvent::Button::None))) };
 			GLmousecb(ev);
 		}
+
+		PhysicsUpdate(deltaTime);
 		GLRender();
 
 		glfwSwapBuffers(window);
+		previusTime = currentTime;
 	}
 
 	GLCleanup();

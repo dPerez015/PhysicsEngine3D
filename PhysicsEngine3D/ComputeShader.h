@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <glm/gtc/random.hpp>
+#include <glm//vec4.hpp>
 namespace LilSpheres {
 	extern const int maxParticles;
 }
@@ -18,7 +19,7 @@ public:
 	ComputeShader();
 	ComputeShader(const GLchar* filepath);
 	void initiateBuffers();
-	void activate();
+	void activate(float dt);
 	~ComputeShader();
 };
 
