@@ -100,7 +100,7 @@ void GLInit(int width, int height) {
 	Axis::setupAxis();
 
 	Sphere::setupSphere();
-	LilSpheres::setupParticles(LilSpheres::maxParticles);
+	//LilSpheres::setupParticles(LilSpheres::maxParticles);
 }
 
 //render
@@ -116,7 +116,7 @@ void GLRender() {
 
 	Box::drawCube();
 	Axis::drawAxis();
-	LilSpheres::drawParticles(0, SHRT_MAX);
+	LilSpheres::drawParticles(0, LilSpheres::maxParticles);
 }
 
 

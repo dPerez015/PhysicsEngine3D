@@ -48,6 +48,30 @@ ComputeShader::ComputeShader(const GLchar* filepath)
 	}
 }
 
+void ComputeShader::initiateBuffers() {
+
+	glGenBuffers(2, dataBuffers);
+	//POSITIONS
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, dataBuffers[0]);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, LilSpheres::maxParticles * sizeof(float) * 3, NULL, GL_STATIC_DRAW);
+	
+	float* pos = reinterpret_cast<float*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, LilSpheres::maxParticles * sizeof(float) * 3, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT));
+	for (int i = 0; i < LilSpheres::maxParticles; ++i) {
+		*pos++ = glm::linearRand<float>(-5, 5);
+		*pos++ = glm::linearRand<float>(7, 10);
+		*pos++ = glm::linearRand<float>(-5, 5);
+	}
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+	//VELOCITIES
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, dataBuffers[0]);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, LilSpheres::maxParticles * sizeof(float) * 3, NULL, GL_STATIC_DRAW);
+
+}
+
+ComputeShader::ComputeShader()
+{
+}
 
 ComputeShader::~ComputeShader()
 {

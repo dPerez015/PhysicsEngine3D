@@ -1,12 +1,15 @@
-#define GLM_ENABLE_EXPERIMENTAL
+//#define GLM_ENABLE_EXPERIMENTAL
 #include "glm/common.hpp"
 #include "glm/vec3.hpp"
-#include "glm/gtx/rotate_vector.hpp"
+#include "ComputeShader.h"
+
+//#include "glm/gtx/rotate_vector.hpp"
 
 namespace LilSpheres {
 	extern const int maxParticles;
 	extern float lifeTime;
-	extern void setupParticles(int numTotalParticles, float radius = 0.05f, float lifeT = 3.0f);
+	extern GLuint particlesVbo;
+	extern void setupParticles(int numTotalParticles, float radius = 0.03f, float lifeT = 3.0f);
 	extern void cleanupParticles();
 	extern void updateParticles(int startIdx, int count, float* array_data);
 	extern void drawParticles(int startIdx, int count);
@@ -31,7 +34,11 @@ void preparePositions() {
 	}
 }
 
+
+ComputeShader computeShader;
+
 void PhysicsInit() {
+	/*
 	particleArray = new Particle[LilSpheres::maxParticles];
 	onlyPositions = new float[LilSpheres::maxParticles * 3];
 	//set particles equidistant position
@@ -46,7 +53,12 @@ void PhysicsInit() {
 
 	preparePositions();
 
-	LilSpheres::updateParticles(0, LilSpheres::maxParticles , onlyPositions);
+	LilSpheres::updateParticles(0, LilSpheres::maxParticles , onlyPositions);*/
+
+	computeShader = ComputeShader("..\Shaders\compute.cs");
+	computeShader.initiateBuffers();
+	LilSpheres::particlesVbo = computeShader.dataBuffers[0];
+	LilSpheres::setupParticles(LilSpheres::maxParticles);
 }
 
 void PhysicsUpdate(float dt) {

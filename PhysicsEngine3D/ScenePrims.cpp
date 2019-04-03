@@ -382,18 +382,18 @@ namespace LilSpheres {
 	float lifeTime;
 	int numparticles;
 	//extern const int maxParticles = SHRT_MAX;
-	extern const int maxParticles = 27000;
+	extern const int maxParticles = 1000000;
 
 	void setupParticles(int numTotalParticles, float radius, float lifeT) {
 		assert(numTotalParticles > 0);
-		assert(numTotalParticles <= SHRT_MAX);
+		//assert(numTotalParticles <= SHRT_MAX);
 		numparticles = numTotalParticles;
 		LilSpheres::radius = radius;
 		LilSpheres::lifeTime = lifeT;
 
 		glGenVertexArrays(1, &particlesVao);
 		glBindVertexArray(particlesVao);
-		glGenBuffers(1, &particlesVbo);
+		//glGenBuffers(1, &particlesVbo);
 
 		glBindBuffer(GL_ARRAY_BUFFER, particlesVbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * numparticles, 0, GL_DYNAMIC_DRAW);
