@@ -2,3 +2,4 @@
 - Porque bindear el VAO al principio?
 - Porque usar los indices de la box en un vbo de tipo GL_ELEMENT_ARRAY_BUFFER? -> Para que sirve ese tipo? 
 - GLM_ENABLE_EXPERIMENTAL? Malo?
+- glMapBuffer en el update de particulas? glBufferSubdata? Como funciona?
