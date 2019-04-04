@@ -19,7 +19,7 @@ public:
 	ComputeShader();
 	ComputeShader(const GLchar* filepath);
 	void initiateBuffers();
-	void activate(float dt);
+	void activate(float dt,glm::vec4 sp);
 	~ComputeShader();
 };
 

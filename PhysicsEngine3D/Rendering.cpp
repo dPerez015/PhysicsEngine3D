@@ -34,7 +34,7 @@ namespace Axis {
 	extern void drawAxis();
 }
 namespace Sphere {
-	extern void setupSphere(glm::vec3 pos = glm::vec3(0.f, 1.f, 0.f), float radius = 1.f);
+	extern void setupSphere(glm::vec3 pos = glm::vec3(0.f, 2.f, 0.f), float radius = 1.f);
 	extern void cleanupSphere();
 	extern void updateSphere(glm::vec3 pos, float radius = 1.f);
 	extern void drawSphere();
@@ -115,7 +115,7 @@ void GLRender() {
 
 	Box::drawCube();
 	Axis::drawAxis();
-	//Sphere::drawSphere();
+	Sphere::drawSphere();
 	LilSpheres::drawParticles(0, LilSpheres::maxParticles);
 }
 

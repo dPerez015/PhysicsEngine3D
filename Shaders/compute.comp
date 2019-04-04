@@ -5,17 +5,24 @@ layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 
 uniform float DT;
 uniform vec4 spherePos;
-const float G = 9.8;
-
+//const float G = 2.8;
+const float atr = 9.8; 
+const float epsilon = 0.4;
 void main(){
 	uint gid = gl_GlobalInvocationID.x;
 	vec4 p = pos[gid];
 	vec4 v = vel[gid];
-	vec4 force = G*normalize(vec4(spherePos.xyz,p.w)-p);
+	vec4 force = atr*normalize(vec4(spherePos.xyz,1.)-p);
+	//force += G*vec4(0,-1,0,0);
 	vec4 newVel = v + (force*DT);
 	vec4 newPos = p + newVel*DT; 
-	//if(length(newPos.xyz)
-
+	if(length(newPos.xyz-spherePos.xyz)<spherePos.w){
+		vec4 n = normalize(newPos-spherePos);
+		float d = dot(newVel,n);
+		newVel=v-(1+epsilon)*d*n;
+		newPos = p ; 
+	}
+	
 	pos[gid] = newPos;
 	vel[gid] = newVel;
 }

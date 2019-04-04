@@ -15,6 +15,7 @@ namespace LilSpheres {
 	extern void drawParticles(int startIdx, int count);
 }
 
+
 struct Particle {
 	glm::vec3 position;
 	glm::vec3 speed;
@@ -36,7 +37,7 @@ void preparePositions() {
 
 
 ComputeShader computeShader;
-
+glm::vec4 sp(0.f, 2.f, 0.f, 1.f);
 void PhysicsInit() {
 	/*
 	particleArray = new Particle[LilSpheres::maxParticles];
@@ -59,10 +60,14 @@ void PhysicsInit() {
 	computeShader.initiateBuffers();
 	LilSpheres::particlesVbo = computeShader.dataBuffers[0];
 	LilSpheres::setupParticles(LilSpheres::maxParticles);
+	
 }
 
 void PhysicsUpdate(float dt) {
-	computeShader.activate(dt);
+	
+
+	computeShader.activate(dt,sp);
+
 }
 
 void PhysicsCleanup() {

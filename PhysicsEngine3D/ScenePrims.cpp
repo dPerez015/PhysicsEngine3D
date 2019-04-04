@@ -382,7 +382,7 @@ namespace LilSpheres {
 	float radius;
 	float lifeTime;
 	int numparticles;
-	//extern const int maxParticles = SHRT_MAX;
+	//extern const int maxParticles = 128;
 	extern const int maxParticles = 1024*1024;
 
 	void setupParticles(int numTotalParticles, float radius, float lifeT) {
