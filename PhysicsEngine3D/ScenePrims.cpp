@@ -2,13 +2,14 @@
 #include <stdio.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "ShaderCompilationUtils.h"
 
 extern glm::mat4 _MVP;
 extern glm::mat4 _modelView;
 extern glm::mat4 _projection;
 
 /////////////////////////////////////////////////
-GLuint compileShader(const char* shaderStr, GLenum shaderType, const char* name = "") {
+/*GLuint compileShader(const char* shaderStr, GLenum shaderType, const char* name = "") {
 	GLuint shader = glCreateShader(shaderType);
 	glShaderSource(shader, 1, &shaderStr, NULL);
 	glCompileShader(shader);
@@ -37,7 +38,7 @@ void linkProgram(GLuint program) {
 		delete[] buff;
 	}
 }
-
+*/
 //////////////////////////////////////////////////BOX
 namespace Box {
 	GLuint cubeVao;
@@ -97,14 +98,14 @@ void main() {\n\
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-		cubeShaders[0] = compileShader(vertShader_xform, GL_VERTEX_SHADER, "cubeVert");
-		cubeShaders[1] = compileShader(fragShader_flatColor, GL_FRAGMENT_SHADER, "cubeFrag");
+		cubeShaders[0] = ShaderCompilationUtils::compileShader(vertShader_xform, GL_VERTEX_SHADER, "cubeVert");
+		cubeShaders[1] = ShaderCompilationUtils::compileShader(fragShader_flatColor, GL_FRAGMENT_SHADER, "cubeFrag");
 
 		cubeProgram = glCreateProgram();
 		glAttachShader(cubeProgram, cubeShaders[0]);
 		glAttachShader(cubeProgram, cubeShaders[1]);
 		glBindAttribLocation(cubeProgram, 0, "in_Position");
-		linkProgram(cubeProgram);
+		ShaderCompilationUtils::linkProgram(cubeProgram);
 	}
 	void cleanupCube() {
 		glDeleteBuffers(2, cubeVbo);
@@ -202,15 +203,15 @@ void main() {\n\
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-		AxisShader[0] = compileShader(Axis_vertShader, GL_VERTEX_SHADER, "AxisVert");
-		AxisShader[1] = compileShader(Axis_fragShader, GL_FRAGMENT_SHADER, "AxisFrag");
+		AxisShader[0] = ShaderCompilationUtils::compileShader(Axis_vertShader, GL_VERTEX_SHADER, "AxisVert");
+		AxisShader[1] = ShaderCompilationUtils::compileShader(Axis_fragShader, GL_FRAGMENT_SHADER, "AxisFrag");
 
 		AxisProgram = glCreateProgram();
 		glAttachShader(AxisProgram, AxisShader[0]);
 		glAttachShader(AxisProgram, AxisShader[1]);
 		glBindAttribLocation(AxisProgram, 0, "in_Position");
 		glBindAttribLocation(AxisProgram, 1, "in_Color");
-		linkProgram(AxisProgram);
+		ShaderCompilationUtils::linkProgram(AxisProgram);
 	}
 	void cleanupAxis() {
 		glDeleteBuffers(3, AxisVbo);
@@ -241,7 +242,7 @@ namespace Sphere {
 	GLuint sphereShaders[3];
 	GLuint sphereProgram;
 	float radius;
-
+/*
 	const char* sphere_vertShader =
 		"#version 330\n\
 in vec4 in_Position;\n\
@@ -295,21 +296,21 @@ void main() {\n\
 	vec3 normal = normalize(nuEyePos - centerEyePos).xyz;\n\
 	out_Color = vec4(color.xyz * dot(normal, (mv_Mat*vec4(0.0, 1.0, 0.0, 0.0)).xyz) + color.xyz * 0.3, 1.0 );\n\
 }";
-
+*/
 	bool shadersCreated = false;
 	void createSphereShaderAndProgram() {
 		if (shadersCreated) return;
 
-		sphereShaders[0] = compileShader(sphere_vertShader, GL_VERTEX_SHADER, "sphereVert");
-		sphereShaders[1] = compileShader(sphere_geomShader, GL_GEOMETRY_SHADER, "sphereGeom");
-		sphereShaders[2] = compileShader(sphere_fragShader_flatColor, GL_FRAGMENT_SHADER, "sphereFrag");
+		//sphereShaders[0] = compileShader(sphere_vertShader, GL_VERTEX_SHADER, "sphereVert");
+		//sphereShaders[1] = compileShader(sphere_geomShader, GL_GEOMETRY_SHADER, "sphereGeom");
+		//sphereShaders[2] = compileShader(sphere_fragShader_flatColor, GL_FRAGMENT_SHADER, "sphereFrag");
 
 		sphereProgram = glCreateProgram();
 		glAttachShader(sphereProgram, sphereShaders[0]);
 		glAttachShader(sphereProgram, sphereShaders[1]);
 		glAttachShader(sphereProgram, sphereShaders[2]);
 		glBindAttribLocation(sphereProgram, 0, "in_Position");
-		linkProgram(sphereProgram);
+		ShaderCompilationUtils::linkProgram(sphereProgram);
 
 		shadersCreated = true;
 	}

@@ -39,7 +39,7 @@ void preparePositions() {
 ComputeShader computeShader;
 glm::vec4 sp(0.f, 2.f, 0.f, 1.f);
 void PhysicsInit() {
-	/*
+	
 	particleArray = new Particle[LilSpheres::maxParticles];
 	onlyPositions = new float[LilSpheres::maxParticles * 3];
 	//set particles equidistant position
@@ -54,19 +54,19 @@ void PhysicsInit() {
 
 	preparePositions();
 
-	LilSpheres::updateParticles(0, LilSpheres::maxParticles , onlyPositions);*/
+	//LilSpheres::updateParticles(0, LilSpheres::maxParticles , onlyPositions);
 
 	computeShader = ComputeShader("../Shaders/compute.comp");
 	computeShader.initiateBuffers();
-	LilSpheres::particlesVbo = computeShader.dataBuffers[0];
-	LilSpheres::setupParticles(LilSpheres::maxParticles);
+	//LilSpheres::particlesVbo = computeShader.dataBuffers[0];
+	//LilSpheres::setupParticles(LilSpheres::maxParticles);
 	
 }
 
 void PhysicsUpdate(float dt) {
 	
 
-	computeShader.activate(dt,sp);
+	//computeShader.activate(dt,sp);
 
 }
 

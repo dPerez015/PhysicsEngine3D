@@ -22,6 +22,9 @@
     <Filter Include="Source Files\Shaders">
       <UniqueIdentifier>{6b53f5b8-02bf-4c81-b6f6-8b5e476b7011}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Utils">
+      <UniqueIdentifier>{ba21bce7-e868-4f05-9157-d92cdeb8e156}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -48,7 +51,22 @@
     <ClCompile Include="Physics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Sphere.cpp">
+      <Filter>Source Files\Prims</Filter>
+    </ClCompile>
     <ClCompile Include="ComputeShader.cpp">
+      <Filter>Source Files\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderCompilationUtils.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="CubePrim.cpp">
+      <Filter>Source Files\Prims</Filter>
+    </ClCompile>
+    <ClCompile Include="AxisPrim.cpp">
+      <Filter>Source Files\Prims</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -60,6 +78,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MouseEvent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Primitive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderCompilationUtils.h">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Sphere.h">
+      <Filter>Source Files\Prims</Filter>
+    </ClInclude>
+    <ClInclude Include="CubePrim.h">
+      <Filter>Source Files\Prims</Filter>
+    </ClInclude>
+    <ClInclude Include="AxisPrim.h">
+      <Filter>Source Files\Prims</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

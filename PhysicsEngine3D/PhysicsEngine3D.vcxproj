@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -147,16 +147,27 @@ xcopy "$(ProjectDir)..\libs\glfw3.dll" "$(OutDir)" /y /d</Command>
     <ClCompile Include="..\include\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\include\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\include\imgui\imgui_impl_glfw_gl3.cpp" />
+    <ClCompile Include="AxisPrim.cpp" />
     <ClCompile Include="ComputeShader.cpp" />
+    <ClCompile Include="CubePrim.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="Physics.cpp" />
     <ClCompile Include="Rendering.cpp" />
     <ClCompile Include="ScenePrims.cpp" />
+    <ClCompile Include="ShaderCompilationUtils.cpp" />
+    <ClCompile Include="Sphere.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AxisPrim.h" />
     <ClInclude Include="ComputeShader.h" />
+    <ClInclude Include="CubePrim.h" />
     <ClInclude Include="MouseEvent.h" />
     <ClInclude Include="Particle.h" />
+    <ClInclude Include="ParticleSystem.h" />
+    <ClInclude Include="Primitive.h" />
+    <ClInclude Include="ShaderCompilationUtils.h" />
+    <ClInclude Include="Sphere.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Shaders\compute.comp" />

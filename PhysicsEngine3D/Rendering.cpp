@@ -2,6 +2,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "MouseEvent.h"
+#include "Sphere.h"
+#include "CubePrim.h"
+#include "AxisPrim.h"
 
 const float FOV = glm::radians(65.f);
 const float zNear = 1.f;
@@ -13,6 +16,11 @@ glm::mat4 _modelView;
 glm::mat4 _inv_modelview;
 glm::vec4 _cameraPoint;
 
+namespace Box {
+	extern void setupCube();
+	extern void cleanupCube();
+	extern void drawCube();
+}
 
 struct prevMouse {
 	float lastx, lasty;
@@ -23,29 +31,6 @@ struct prevMouse {
 float panv[3] = { 0.f, -5.f, -15.f };
 float rota[2] = { 0.f, 0.f };
 
-namespace Box {
-	extern void setupCube();
-	extern void cleanupCube();
-	extern void drawCube();
-}
-namespace Axis {
-	extern void setupAxis();
-	extern void cleanupAxis();
-	extern void drawAxis();
-}
-namespace Sphere {
-	extern void setupSphere(glm::vec3 pos = glm::vec3(0.f, 2.f, 0.f), float radius = 1.f);
-	extern void cleanupSphere();
-	extern void updateSphere(glm::vec3 pos, float radius = 1.f);
-	extern void drawSphere();
-}
-namespace LilSpheres {
-	extern const int maxParticles;
-	extern void setupParticles(int numTotalParticles, float radius = 0.05f, float lifeT = 5.0f);
-	extern void cleanupParticles();
-	extern void updateParticles(int startIdx, int count, float* array_data);
-	extern void drawParticles(int startIdx, int count);
-}
 
 
 void GLmousecb(MouseEvent ev) {
@@ -75,13 +60,15 @@ void GLmousecb(MouseEvent ev) {
 	prevMouse.lasty = ev.posy;
 }
 
-
 //resize window rendering after a resize from glfw (function called has callback)
 void GLResize(int w, int h) {
 	glViewport(0, 0, w, h);
 	if (h != 0) _projection = glm::perspective(FOV, (float)w / (float)h, zNear, zFar);
 	else _projection = glm::perspective(FOV, 0.f, zNear, zFar);
 }
+
+CubePrim* box;
+AxisPrim* axis;
 
 //init rendering
 void GLInit(int width, int height) {
@@ -95,11 +82,14 @@ void GLInit(int width, int height) {
 	glEnable(GL_CULL_FACE);
 
 	_projection = glm::perspective(FOV, (float)width / (float)height, zNear, zFar);
-
-	Box::setupCube();
-	Axis::setupAxis();
-
-	Sphere::setupSphere();
+	
+	SpherePrim::Setup();
+	//Box::setupCube();
+	CubePrim::Setup();
+	AxisPrim::Setup();
+	box = new CubePrim();
+	axis = new AxisPrim();
+	//box.Init();
 }
 
 //render
@@ -113,18 +103,16 @@ void GLRender() {
 
 	_MVP = _projection * _modelView;
 
-	Box::drawCube();
-	Axis::drawAxis();
-	Sphere::drawSphere();
-	LilSpheres::drawParticles(0, LilSpheres::maxParticles);
+	//Box::drawCube();
+	box->Draw();
+	axis->Draw();
 }
 
 
 //cleanup
 
 void GLCleanup() {
-	Box::cleanupCube();
-	Axis::cleanupAxis();
-	Sphere::cleanupSphere();
-	LilSpheres::cleanupParticles();
+	SpherePrim::Cleanup();
+	CubePrim::Cleanup();
+	AxisPrim::Cleanup();
 }
