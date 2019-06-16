@@ -9,7 +9,7 @@ public:
 	int id;
 	virtual void JustDraw()=0;
 
-	virtual void setupParticles();
+	virtual void setupParticles()=0;
 
 	static std::vector<glm::vec3> position;
 	static std::vector < glm::vec3> linearMomentum;

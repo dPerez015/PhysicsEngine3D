@@ -10,7 +10,7 @@ CubePrim* cube;
 void PhysicsInit() {
 	CubePrim::Setup();
 	cube = new CubePrim();
-	CollisionEngine::getInstance().generateParticles(cube->cubeVertex,36,cube,4);
+	CollisionEngine::getInstance().generateParticles(cube->cubeVertex,36,cube,4, rbType::Cube);
 	
 }
 

@@ -25,9 +25,12 @@ public:
 	void Draw();
 
 	void JustDraw();
+	void setupParticles();
 
 private:
 	static bool shadersCreated;
+
+	glm::mat4 modelMat;
 
 	GLuint vao;
 	GLuint cubeVbo;

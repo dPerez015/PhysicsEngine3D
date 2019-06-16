@@ -5,11 +5,9 @@ void ParticleSystem::Setup() {
 	SpherePrim::createSphereShaderAndProgram();
 }
 
-ParticleSystem::ParticleSystem()
-{
-	numparticles = 0;
-}
 ParticleSystem::ParticleSystem() {
+
+	numparticles = 0;
 	glGenVertexArrays(1, &particlesVao);
 	glBindVertexArray(particlesVao);
 	glGenBuffers(1, &particlesVbo);
@@ -26,6 +24,7 @@ ParticleSystem::ParticleSystem() {
 int ParticleSystem::AddParticle(int rbIndex) {
 	positions.push_back(glm::vec3(0, 0, 0));
 	rigidBodyIndex.push_back(rbIndex);
+	return positions.size() - 1;
 }
 
 ParticleSystem::~ParticleSystem()

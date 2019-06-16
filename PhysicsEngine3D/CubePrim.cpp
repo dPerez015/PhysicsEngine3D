@@ -162,6 +162,10 @@ void CubePrim::Setup() {
 	shadersCreated = true;
 }
 
+void CubePrim::setupParticles() {
+
+}
+
 void CubePrim::Cleanup() {
 	glDeleteProgram(cubeProgram);
 	glDeleteShader(cubeShaders[0]);
@@ -171,7 +175,10 @@ void CubePrim::Cleanup() {
 void CubePrim::Draw() {
 	glBindVertexArray(vao);
 	glUseProgram(cubeProgram);
-	glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(_MVP));
+	modelMat = glm::translate(modelMat, glm::vec3(1,0,0));
+	modelMat = glm::rotate(modelMat, glm::radians(60.f), glm::vec3(1.0f, 0.3f, 0.5f));
+	modelMat = modelMat * _MVP;
+	glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(modelMat));
 	glUniform4f(glGetUniformLocation(cubeProgram, "color"), 0.0f, 0.6f, 0.6f, 1.f);
 
 	glDrawArrays(GL_TRIANGLES, 0, 36);
