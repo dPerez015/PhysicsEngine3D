@@ -60,14 +60,23 @@
     <ClCompile Include="ShaderCompilationUtils.cpp">
       <Filter>Source Files\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="CubePrim.cpp">
-      <Filter>Source Files\Prims</Filter>
-    </ClCompile>
     <ClCompile Include="AxisPrim.cpp">
       <Filter>Source Files\Prims</Filter>
     </ClCompile>
     <ClCompile Include="ParticleSystem.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CollisionEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BoxPrim.cpp">
+      <Filter>Source Files\Prims</Filter>
+    </ClCompile>
+    <ClCompile Include="CubePrim.cpp">
+      <Filter>Source Files\Prims</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -89,18 +98,36 @@
     <ClInclude Include="Sphere.h">
       <Filter>Source Files\Prims</Filter>
     </ClInclude>
-    <ClInclude Include="CubePrim.h">
-      <Filter>Source Files\Prims</Filter>
-    </ClInclude>
     <ClInclude Include="AxisPrim.h">
       <Filter>Source Files\Prims</Filter>
     </ClInclude>
     <ClInclude Include="ParticleSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CollisionEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BoxPrim.h">
+      <Filter>Source Files\Prims</Filter>
+    </ClInclude>
+    <ClInclude Include="CubePrim.h">
+      <Filter>Source Files\Prims</Filter>
+    </ClInclude>
+    <ClInclude Include="RigidBody.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Shaders\compute.comp">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="..\Shaders\VoxelGeneration.fs">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="..\Shaders\VoxelGeneration.vs">
       <Filter>Source Files\Shaders</Filter>
     </None>
   </ItemGroup>

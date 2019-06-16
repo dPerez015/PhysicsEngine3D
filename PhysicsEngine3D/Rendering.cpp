@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "MouseEvent.h"
 #include "Sphere.h"
+#include "BoxPrim.h"
 #include "CubePrim.h"
 #include "AxisPrim.h"
 
@@ -67,7 +68,8 @@ void GLResize(int w, int h) {
 	else _projection = glm::perspective(FOV, 0.f, zNear, zFar);
 }
 
-CubePrim* box;
+BoxPrim* box;
+extern CubePrim* cube;
 AxisPrim* axis;
 
 //init rendering
@@ -84,12 +86,12 @@ void GLInit(int width, int height) {
 	_projection = glm::perspective(FOV, (float)width / (float)height, zNear, zFar);
 	
 	SpherePrim::Setup();
-	//Box::setupCube();
-	CubePrim::Setup();
+	BoxPrim::Setup();
 	AxisPrim::Setup();
-	box = new CubePrim();
+	CubePrim::Setup();
+
+	box = new BoxPrim();
 	axis = new AxisPrim();
-	//box.Init();
 }
 
 //render
@@ -106,6 +108,7 @@ void GLRender() {
 	//Box::drawCube();
 	box->Draw();
 	axis->Draw();
+	cube->Draw();
 }
 
 
@@ -113,6 +116,6 @@ void GLRender() {
 
 void GLCleanup() {
 	SpherePrim::Cleanup();
-	CubePrim::Cleanup();
+	BoxPrim::Cleanup();
 	AxisPrim::Cleanup();
 }

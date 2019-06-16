@@ -148,29 +148,38 @@ xcopy "$(ProjectDir)..\libs\glfw3.dll" "$(OutDir)" /y /d</Command>
     <ClCompile Include="..\include\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\include\imgui\imgui_impl_glfw_gl3.cpp" />
     <ClCompile Include="AxisPrim.cpp" />
+    <ClCompile Include="CollisionEngine.cpp" />
     <ClCompile Include="ComputeShader.cpp" />
+    <ClCompile Include="BoxPrim.cpp" />
     <ClCompile Include="CubePrim.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="Physics.cpp" />
     <ClCompile Include="Rendering.cpp" />
     <ClCompile Include="ScenePrims.cpp" />
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderCompilationUtils.cpp" />
     <ClCompile Include="Sphere.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AxisPrim.h" />
+    <ClInclude Include="CollisionEngine.h" />
     <ClInclude Include="ComputeShader.h" />
+    <ClInclude Include="BoxPrim.h" />
     <ClInclude Include="CubePrim.h" />
     <ClInclude Include="MouseEvent.h" />
     <ClInclude Include="Particle.h" />
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="Primitive.h" />
+    <ClInclude Include="RigidBody.h" />
+    <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderCompilationUtils.h" />
     <ClInclude Include="Sphere.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Shaders\compute.comp" />
+    <None Include="..\Shaders\VoxelGeneration.fs" />
+    <None Include="..\Shaders\VoxelGeneration.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

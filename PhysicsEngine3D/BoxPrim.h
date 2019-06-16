@@ -1,37 +1,37 @@
 #pragma once
 #include "ShaderCompilationUtils.h"
-#include "RigidBody.h"
+#include "Shader.h"
 
 extern glm::mat4 _MVP;
 extern glm::mat4 _modelView;
 extern glm::mat4 _projection;
 
-
-class CubePrim :public RigidBody
+class BoxPrim
 {
 public:
-	CubePrim();
-	~CubePrim();
+	BoxPrim();
+	~BoxPrim();
 
 	static const char* vertShader_xform;
 	static const char* fragShader_flatColor;
-
-	static float cubeVerts[216];
-	static float cubeVertex[108];
+	
+	static float cubeVerts[24];
 	static GLubyte cubeIdx[20];
-
+	
 	static void Setup();
 	static void Cleanup();
 	void Draw();
 
 	void JustDraw();
+	void Init();
 
 private:
 	static bool shadersCreated;
 
-	GLuint vao;
-	GLuint cubeVbo;
+	GLuint cubeVao;
+	GLuint cubeVbo[2];
 	static GLuint cubeShaders[2];
 	static GLuint cubeProgram;
+
 };
 
