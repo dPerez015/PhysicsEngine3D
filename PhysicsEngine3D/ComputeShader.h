@@ -15,11 +15,12 @@ class ComputeShader
 {
 public:
 	GLuint ID;
-	GLuint dataBuffers[2];
+	//GLuint dataBuffers[2];
 	ComputeShader();
 	ComputeShader(const GLchar* filepath);
-	void initiateBuffers();
-	void activate(float dt,glm::vec4 sp);
+	//void initiateBuffers();
+	void use();
+	void dispatch(float,float,float);
 	~ComputeShader();
 };
 

@@ -139,6 +139,16 @@ CubePrim::CubePrim()
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
+	id = position.size();
+	
+	position.push_back(glm::vec4(1.f, 1.f, 0.f, 0.f));
+	linearVelocity.push_back(glm::vec4(0.f, 0.f, 0.f, 0.f));
+	angularVelocity.push_back(glm::vec4(0.f, 0.f, 0.f, 0.f));
+	rotation.push_back(glm::quat(1.f, 0.f, 0.f, 0.f));
+}
+
+void CubePrim::setPosition(glm::vec3 p) {
+	position[id] = glm::vec4(p,0.f);
 }
 
 
@@ -162,8 +172,8 @@ void CubePrim::Setup() {
 	shadersCreated = true;
 }
 
-void CubePrim::setupParticles() {
-
+void CubePrim::addParticle(int id) {
+	particlesIndexes.push_back(id);
 }
 
 void CubePrim::Cleanup() {
@@ -172,12 +182,25 @@ void CubePrim::Cleanup() {
 	glDeleteShader(cubeShaders[1]);
 }
 
+void CubePrim::UpdatePhysicalVar(float dt) {
+	linearVelocity[id] += glm::vec4(0.0f, -1.0f, 0.0f,0.f)*9.8f*dt;
+	if (glm::length(angularVelocity[id]) > 0.f) {
+		float angle = glm::length(angularVelocity[id] * dt);
+		glm::quat dq(glm::cos(angle / 2.0f), glm::normalize(angularVelocity[id])*glm::sin(angle / 2.0f));
+		rotation[id] = dq * rotation[id];
+	}
+	position[id] += linearVelocity[id] * dt;
+	
+
+}
+
 void CubePrim::Draw() {
 	glBindVertexArray(vao);
 	glUseProgram(cubeProgram);
-	modelMat = glm::translate(modelMat, glm::vec3(1,0,0));
-	modelMat = glm::rotate(modelMat, glm::radians(60.f), glm::vec3(1.0f, 0.3f, 0.5f));
-	modelMat = modelMat * _MVP;
+	modelMat = glm::mat4(1.0f);
+	modelMat = glm::translate(modelMat, glm::vec3(position[id].x, position[id].y, position[id].z));
+	modelMat = modelMat * glm::toMat4(rotation[id]);
+	modelMat = _MVP*modelMat;
 	glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(modelMat));
 	glUniform4f(glGetUniformLocation(cubeProgram, "color"), 0.0f, 0.6f, 0.6f, 1.f);
 

@@ -12,6 +12,52 @@ CollisionEngine::CollisionEngine()
 
 	shader = Shader("../Shaders/VoxelGeneration.vs", "../Shaders/VoxelGeneration.fs");
 
+	particlesVarUpdate = ComputeShader(".. / Shaders / computeParticlePositioning.comp");
+
+	//creamos los buffers de las particulas para los compute shaders
+	//posiciones finales
+	glGenBuffers(1, &finalPosBuff);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, finalPosBuff);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(particlesUpdatedPos), NULL, GL_STATIC_DRAW);
+
+	//velocidades finales
+	glGenBuffers(1, &finalVelBuff);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, finalVelBuff);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(particlesUpdatedVel), NULL, GL_STATIC_DRAW);
+
+	//posiciones relativas
+	glGenBuffers(1, &relativePosBuff);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, relativePosBuff);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(particlesRelativePos), NULL, GL_STATIC_DRAW);
+
+	//posiciones iniciales
+	glGenBuffers(1, &initialPosBuff);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, initialPosBuff);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, 1024 * 1024 * sizeof(float)*4, NULL, GL_STATIC_DRAW);
+
+	//posiciones de los rigidbodies
+	glGenBuffers(1, &rigidBodyPosBuff);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, rigidBodyPosBuff);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, (1024 * 1024 * sizeof(float) * 4) / 64, NULL, GL_STATIC_DRAW);
+
+	//velocidades de los rigidBodies
+	glGenBuffers(1, &rigidBodyVelBuff);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, rigidBodyVelBuff);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, (1024 * 1024 * sizeof(float) * 4) / 64, NULL, GL_STATIC_DRAW);
+
+	//velocidad angular de los rigidBodies
+	glGenBuffers(1, &rigidBodyAngVelBuff);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, rigidBodyAngVelBuff);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, (1024 * 1024 * sizeof(float) * 4) / 64, NULL, GL_STATIC_DRAW);
+
+	//quaternions de los rigidBodies
+	glGenBuffers(1, &rigidBodyRotationBuff);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, rigidBodyRotationBuff);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, (1024 * 1024 * sizeof(float) * 4) / 64, NULL, GL_STATIC_DRAW);
 }
 
 
@@ -19,6 +65,54 @@ CollisionEngine::~CollisionEngine()
 {
 	glDeleteFramebuffers(1, &fbo);
 }
+
+void CollisionEngine::draw() {
+	for (auto it = rigidBodies.begin(); it != rigidBodies.end(); ++it) {
+		(*it)->Draw();
+	}
+
+}
+
+void CollisionEngine::update(float dt) {
+	//actualizamos los valores de los rigidbodies normal
+	for (auto it = rigidBodies.begin(); it != rigidBodies.end(); ++it) {
+		(*it)->UpdatePhysicalVar(dt);
+	}
+
+	//actualizamos los valores de las particulas de los rigidbodies
+	//primero actualizamos los valores de las posiciones iniciales, por si ha aparecido algun nuevo valor.
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, initialPosBuff);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4)*particlesInitialPos.size(), &particlesInitialPos[0], GL_STATIC_DRAW);
+
+	//despues enviamos los datos de los rigidbodies
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, rigidBodyPosBuff);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4)*RigidBody::position.size(), &RigidBody::position[0], GL_STATIC_DRAW);
+	
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, rigidBodyVelBuff);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4)*RigidBody::linearVelocity.size(), &RigidBody::linearVelocity[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, rigidBodyAngVelBuff);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4)*RigidBody::angularVelocity.size(), &RigidBody::angularVelocity[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, rigidBodyRotationBuff);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4)*RigidBody::rotation.size(), &RigidBody::rotation[0], GL_STATIC_DRAW);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, initialPosBuff);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, finalPosBuff);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, finalVelBuff);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, relativePosBuff);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, rigidBodyPosBuff);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, rigidBodyVelBuff);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, rigidBodyAngVelBuff);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, rigidBodyRotationBuff);
+	
+	particlesVarUpdate.use();
+	particlesVarUpdate.dispatch(glm::ceil((float)particlesInitialPos.size() / 128.f), 1.f, 1.f);
+
+}
+
 
 void CollisionEngine::setupFrameBuffer(int resolution) {
 	
@@ -49,26 +143,28 @@ void CollisionEngine::setupFrameBuffer(int resolution) {
 	if (!glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
 		fprintf(stderr, "The frameBuffer isn't complete\n");
 	}
-
+	
 	clearFrameBuffer();
-
 }
 void CollisionEngine::clearFrameBuffer() {
 	glClearColor(0, 0, 0, 0);
-	glClearDepth(0);
+	glClearDepth(1.f);
 }
 void CollisionEngine::cleanupFrameBuffer() {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
 	glDisable(GL_COLOR_LOGIC_OP);
-	glLogicOp(GL_XOR);
+	//glLogicOp(GL_XOR);
 
 	glDeleteTextures(1, &texture);
 	glDeleteTextures(1, &depthTexture);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	
+	glClearColor(0.2f, 0.2f, 0.2f, 1.f);
+	glClearDepth(1.f);
 }
+
 
 void CollisionEngine::generateParticles(float* vertex,int ammount,RigidBody* rb ,int resolution, rbType type) {
 	rigidBodies.push_back(rb);
@@ -119,14 +215,13 @@ void CollisionEngine::generateParticles(float* vertex,int ammount,RigidBody* rb 
 			maxDiference = zDif;
 
 		//we set the frustrum to fit the model
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
-
 		glm::mat4 orthoProjection = glm::ortho(minX, minX + maxDiference, minY, minY + maxDiference, minZ, minZ + maxDiference);
 
 
 		//we render it to a texture
 		setupFrameBuffer(resolution);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
 		glEnable(GL_COLOR_LOGIC_OP);
 		glLogicOp(GL_XOR);
 
@@ -186,8 +281,12 @@ void CollisionEngine::generateParticles(float* vertex,int ammount,RigidBody* rb 
 
 		cleanupFrameBuffer();
 	}
+	//once we have the particles blueprint, we place them into an array and pass the indexes to the rigidbody
+	std::vector<glm::vec3>* particlesFromRB = &particleBlueprints[type];
 
+	for (auto it = particlesFromRB->begin(); it != particlesFromRB->end(); ++it) {
+		rb->addParticle(particlesInitialPos.size());
+		particlesInitialPos.push_back(glm::vec4(*it,(float)rb->id));
+	}
 
-	
-	
 }

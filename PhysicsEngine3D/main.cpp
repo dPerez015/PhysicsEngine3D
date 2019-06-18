@@ -7,6 +7,8 @@
 #include <imgui/imgui_impl_glfw_gl3.h>
 #include "MouseEvent.h"
 
+
+
 extern void GLResize(int width, int height);
 extern void GLInit(int width, int height);
 extern void GLRender();
@@ -23,9 +25,6 @@ void GLFWwindowresize(GLFWwindow*, int w, int h) {
 void error_callback(int error, const char* description) {
 	std::cerr << "GLFW Error: " << description << std::endl;
 }
-
-
-
 
 
 int main() {
@@ -95,7 +94,7 @@ int main() {
 			GLmousecb(ev);
 		}
 
-		//PhysicsUpdate(deltaTime);
+		PhysicsUpdate(deltaTime);
 		GLRender();
 
 		glfwSwapBuffers(window);

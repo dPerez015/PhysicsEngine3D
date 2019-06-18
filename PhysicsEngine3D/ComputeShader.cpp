@@ -48,9 +48,9 @@ ComputeShader::ComputeShader(const GLchar* filepath)
 		delete[] buff;
 	}
 }
-
+/*
 void ComputeShader::initiateBuffers() {
-
+	
 	glGenBuffers(2, dataBuffers);
 	//POSITIONS
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, dataBuffers[0]);
@@ -76,18 +76,22 @@ void ComputeShader::initiateBuffers() {
 		*vel++ = 0;
 	}
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-}
 
-void ComputeShader::activate(float dt, glm::vec4 sp) {
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, dataBuffers[0]);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, dataBuffers[1]);
+}*/
+
+void ComputeShader::use() {
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, dataBuffers[0]);
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, dataBuffers[1]);
 	glUseProgram(ID);
-	glUniform1f(glGetUniformLocation(ID, "DT"), dt);
-	glUniform4fv(glGetUniformLocation(ID, "spherePos"),1 ,&sp.x);
-	glDispatchCompute(LilSpheres::maxParticles / 128, 1, 1);
-	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	//glUniform1f(glGetUniformLocation(ID, "DT"), dt);
+	//glUniform4fv(glGetUniformLocation(ID, "spherePos"),1 ,&sp.x);
+	
 }
-
+void ComputeShader::dispatch(float x, float y, float z) {
+	glDispatchCompute(x, y, z);
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	glUseProgram(0);
+}
 ComputeShader::ComputeShader()
 {
 }

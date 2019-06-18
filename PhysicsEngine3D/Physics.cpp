@@ -11,11 +11,11 @@ void PhysicsInit() {
 	CubePrim::Setup();
 	cube = new CubePrim();
 	CollisionEngine::getInstance().generateParticles(cube->cubeVertex,36,cube,4, rbType::Cube);
-	
+	cube->setPosition(glm::vec3(0.f, 5.f, 0.f));
 }
 
 void PhysicsUpdate(float dt) {
-
+	CollisionEngine::getInstance().update(dt);
 }
 
 void PhysicsCleanup() {

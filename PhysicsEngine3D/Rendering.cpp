@@ -6,6 +6,7 @@
 #include "BoxPrim.h"
 #include "CubePrim.h"
 #include "AxisPrim.h"
+#include "CollisionEngine.h"
 
 const float FOV = glm::radians(65.f);
 const float zNear = 1.f;
@@ -69,7 +70,7 @@ void GLResize(int w, int h) {
 }
 
 BoxPrim* box;
-extern CubePrim* cube;
+//extern CubePrim* cube;
 AxisPrim* axis;
 
 //init rendering
@@ -108,7 +109,8 @@ void GLRender() {
 	//Box::drawCube();
 	box->Draw();
 	axis->Draw();
-	cube->Draw();
+	//cube->Draw();
+	CollisionEngine::getInstance().draw();
 }
 
 

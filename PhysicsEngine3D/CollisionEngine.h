@@ -3,7 +3,10 @@
 #include <unordered_map>
 #include "ShaderCompilationUtils.h"
 #include "Shader.h"
+#include "ComputeShader.h"
 #include "RigidBody.h"
+
+
 
 extern glm::mat4 _MVP;
 extern glm::mat4 _modelView;
@@ -21,6 +24,9 @@ public:
 	CollisionEngine(CollisionEngine const&) = delete;
 	void operator= (CollisionEngine const&) = delete;
 	void generateParticles(float*vertex, int ammount, RigidBody* rb, int resolution,rbType type);
+
+	void update(float dt);
+	void draw();
 private:
 	CollisionEngine();
 	~CollisionEngine();
@@ -36,8 +42,27 @@ private:
 	void cleanupFrameBuffer();
 	
 	std::unordered_map<rbType, std::vector<glm::vec3>> particleBlueprints;
+	
+	//particle buffers
+	GLuint finalPosBuff;
+	GLuint initialPosBuff;
+	GLuint relativePosBuff;
+	GLuint finalVelBuff;
+
+	//rigidbodies buffers
+	GLuint rigidBodyPosBuff;
+	GLuint rigidBodyVelBuff;
+	GLuint rigidBodyAngVelBuff;
+	GLuint rigidBodyRotationBuff;
+
 
 	Shader shader;
+	ComputeShader particlesVarUpdate;
+
 	std::vector<RigidBody*>rigidBodies;
+	std::vector<glm::vec4>particlesInitialPos;
+	glm::vec4 particlesUpdatedPos[1024 * 1024];
+	glm::vec4 particlesRelativePos[1024 * 1024];
+	glm::vec4 particlesUpdatedVel[1024 * 1024];
 };
 

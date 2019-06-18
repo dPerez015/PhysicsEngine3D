@@ -24,11 +24,15 @@ public:
 	static void Cleanup();
 	void Draw();
 
-	void JustDraw();
-	void setupParticles();
+	void setPosition(glm::vec3 p);
 
+	void JustDraw();
+	void addParticle(int id);
+	void UpdatePhysicalVar(float dt);
 private:
 	static bool shadersCreated;
+	
+	std::vector<int>particlesIndexes;
 
 	glm::mat4 modelMat;
 

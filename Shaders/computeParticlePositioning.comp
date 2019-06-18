@@ -1,0 +1,23 @@
+#version 430
+layout(std430, binding = 0) buffer initialPos{vec4 initPos[];};
+layout(std430, binding = 1) buffer finalPos{vec4 fPos[];};
+layout(std430, binding = 2) buffer finalVel{vec4 fVel[];};
+layout(std430, binding = 3) buffer relativePos{vec4 relPos[];};
+layout(std430, binding = 4) buffer rigidbodyPos{vec4 rbPos[];};
+layout(std430, binding = 5) buffer rigidbodyVel{vec4 rbVel[];};
+layout(std430, binding = 6) buffer rigidbodyAngVel{vec4 rbAngVel[];};
+layout(std430, binding = 7) buffer rigidbodyRotation{vec4 rbRot[];};
+
+layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
+
+vec4 rotateVectorByQuat(vec3 v, vec4 quat){
+	return 2.0f*dot(quat.xyz,v) * quat.xyz + (q.w*q.w - dot(q.xyz,q.xyz))*v + 2.0f * q.w *cross(q.xyz,v);
+}
+
+void main(){
+	uint gid = gl_GlobalInvocationID.x;
+	uint rbID = int(initPos[gid].w);
+	vec4 clearInitPos = vec4(initPos[gid].xyz,0.f);
+	fPos[gid] = clearInitPos+rbPos[rbId];
+}
+

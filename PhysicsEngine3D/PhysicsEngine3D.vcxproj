@@ -156,6 +156,7 @@ xcopy "$(ProjectDir)..\libs\glfw3.dll" "$(OutDir)" /y /d</Command>
     <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="Physics.cpp" />
     <ClCompile Include="Rendering.cpp" />
+    <ClCompile Include="RigidBody.cpp" />
     <ClCompile Include="ScenePrims.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderCompilationUtils.cpp" />
@@ -178,6 +179,7 @@ xcopy "$(ProjectDir)..\libs\glfw3.dll" "$(OutDir)" /y /d</Command>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Shaders\compute.comp" />
+    <None Include="..\Shaders\computeParticlePositioning.comp" />
     <None Include="..\Shaders\VoxelGeneration.fs" />
     <None Include="..\Shaders\VoxelGeneration.vs" />
   </ItemGroup>
