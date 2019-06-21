@@ -143,7 +143,7 @@ CubePrim::CubePrim()
 	
 	position.push_back(glm::vec4(1.f, 1.f, 0.f, 0.f));
 	linearVelocity.push_back(glm::vec4(0.f, 0.f, 0.f, 0.f));
-	angularVelocity.push_back(glm::vec4(-1.f, 1.f, 0.f, 0.f));
+	angularVelocity.push_back(glm::vec4(0.f, 1.f, 0.f, 0.f));
 	//angularVelocity.push_back(glm::vec4(0.f, 0.f, 0.f, 0.f));
 	rotation.push_back(glm::quat(1.f, 0.f, 0.f, 0.f));
 }

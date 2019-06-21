@@ -39,25 +39,26 @@ void main(){
 
 
 //--------------- grid ------------------
-	/*int gridX=int(floor((finalPos.x-minX)/gridVoxelSize));
-	float checkIsSmaller = step(gridX, 0);
-	float checkIsBigger = step(-gridX, -gridSize);
-	//gridX = gridX *int(checkIsSmaller * checkIsBigger);
+	int gridX=int(clamp(floor((finalPos.x-minX)/gridVoxelSize),0,gridSize));
+	
+	float checkIsSmaller = step(0,gridX);
+	float checkIsBigger = step(gridSize, gridX);
+	gridX = gridX *int(checkIsSmaller * (1-checkIsBigger));
 
-	int gridY=clamp(int(floor((finalPos.y-minY)/gridVoxelSize)),0,gridSize);
-	checkIsSmaller *= step(gridY, 0);
-	checkIsBigger *= step(-gridY, -gridSize);
-	gridY = gridY *int(checkIsSmaller * checkIsBigger);
+	int gridY=int(clamp(floor((finalPos.y-minY)/gridVoxelSize),0,gridSize));
+	checkIsSmaller *= step(0,gridY);
+	checkIsBigger *= step(gridSize,gridY);
+	gridY = gridY *int(checkIsSmaller * (1- checkIsBigger));
 
-	int gridZ=clamp(int(floor((finalPos.z-minZ)/gridVoxelSize)),0,gridSize);
-	checkIsSmaller *= step(gridZ, 0);
-	checkIsBigger *= step(-gridZ, -gridSize);
-	gridZ = gridZ * int(checkIsSmaller * checkIsBigger);
-
+	int gridZ=int(clamp(floor((finalPos.z-minZ)/gridVoxelSize),0,gridSize));
+	checkIsSmaller *= step(0,gridZ);
+	checkIsBigger *= step(gridSize,gridZ);
+	gridZ = gridZ * int(checkIsSmaller * (1-checkIsBigger));
+	
 	int voxelID = gridX + gridY * gridSize + gridZ*gridSize*gridSize;
 
 	ivec4 previusGridValue = grid[voxelID];
-	int idToInsert = ((int(gid) + 1)* int(checkIsSmaller * checkIsBigger)) - 1;
+	int idToInsert = ((int(gid) + 1)* int(checkIsSmaller * (1-checkIsBigger))) - 1;
 
 	previusGridValue = previusGridValue.axyz;
 	int previusId = previusGridValue.a;
@@ -66,7 +67,8 @@ void main(){
 
 	previusGridValue.x = int(idToInsert);
 	
-	grid[gid] = ivec4(gridX,-1,-1,-1);*/
+	grid[voxelID] = previusGridValue;
+	//grid[gid] = ivec4(idToInsert,0,0,0);
 	
 }
 

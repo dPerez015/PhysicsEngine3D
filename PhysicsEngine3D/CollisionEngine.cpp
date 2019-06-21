@@ -97,9 +97,9 @@ CollisionEngine::~CollisionEngine()
 }
 
 void CollisionEngine::draw() {
-	//particleSystem.Draw(particlesInitialPos.size());
+	particleSystem.Draw(particlesInitialPos.size());
 	for (auto it = rigidBodies.begin(); it != rigidBodies.end(); ++it) {
-		(*it)->Draw();
+		//(*it)->Draw();
 	}
 	
 }
@@ -114,9 +114,9 @@ void CollisionEngine::bufferVector(GLuint buffer, std::vector<glm::vec4>* vector
 
 void CollisionEngine::reciveBuffer(GLuint buffer, std::vector<glm::vec4>*vector) {
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer);
-	glm::vec4* temp = new glm::vec4[sizeof(glm::vec4)*vector->size()];
+	//glm::vec4* temp = new glm::vec4[sizeof(glm::vec4)*vector->size()];
 	int i = 0;
-	temp = reinterpret_cast<glm::vec4*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(glm::vec4)*vector->size(), GL_MAP_READ_BIT));
+	glm::vec4* temp = reinterpret_cast<glm::vec4*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(glm::vec4)*vector->size(), GL_MAP_READ_BIT));
 	for (auto it = vector->begin(); it != vector->end(); ++it) {
 		*it = temp[i]; 
 		i++;
@@ -160,14 +160,11 @@ void CollisionEngine::update(float dt) {
 		*tempIndexes++ = *it;
 	}
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, gridBuffer);
-	glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_RGBA32I,GL_RED,GL_INT, &defaultGridIndexes);
+	glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_RGBA32I,GL_RGBA_INTEGER,GL_INT, &defaultGridIndexes);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-	
-	
 
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, initialPosBuff);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, finalPosBuff);
@@ -181,39 +178,50 @@ void CollisionEngine::update(float dt) {
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, rigidBodyParticleIndexBuff);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, gridBuffer);
 	
-	
 		
 	particlesVarUpdate.use();
 	particlesVarUpdate.setFloat("minX", -5);
 	particlesVarUpdate.setFloat("minY", 0);
 	particlesVarUpdate.setFloat("minZ", -5);
+	
 	particlesVarUpdate.setFloat("gridVoxelSize", 10.f/64.f);
-	particlesVarUpdate.setInt("gridVoxelSize", 64);
+	particlesVarUpdate.setInt("gridSize", 64);
 
 	particlesVarUpdate.dispatch(glm::ceil((float)particlesInitialPos.size() / 128.f), 1.f, 1.f);
 	
 	particlesColision.use();
-	particlesColision.setFloat("springCoef", 20.f);
-	particlesColision.setFloat("dampingCoef", 4.8f);
-	particlesColision.setFloat("shearCoef", 0.3f);
+	particlesColision.setFloat("springCoef", 15.f);
+	particlesColision.setFloat("dampingCoef", 3.8f);
+	particlesColision.setFloat("shearCoef", -2.3f);
 	particlesColision.setFloat("particleSize", 0.25f);
-	particlesVarUpdate.setFloat("minX", -5);
-	particlesVarUpdate.setFloat("minY", 0);
-	particlesVarUpdate.setFloat("minZ", -5);
-	particlesVarUpdate.setFloat("gridVoxelSize", 10.f / 64.f);
-	particlesVarUpdate.setInt("gridVoxelSize", 64);
+	
+	particlesColision.setFloat("minX", -5);
+	particlesColision.setFloat("minY", 0);
+	particlesColision.setFloat("minZ", -5);
+	particlesColision.setFloat("gridVoxelSize", 10.f / 64.f);
+	particlesColision.setInt("gridSize", 64);
 	particlesColision.dispatch(glm::ceil((float)particlesInitialPos.size() / 128.f), 1.f, 1.f);
 	
+
 	rbColisionReaction.use();
 	rbColisionReaction.setFloat("dt", dt);
 	rbColisionReaction.dispatch(glm::ceil((float)rigidBodies.size() / 128.f), 1.f, 1.f);
 	
-	/*glBindBuffer(GL_SHADER_STORAGE_BUFFER, gridBuffer);
-	glm::ivec4* temp = new glm::ivec4[sizeof(defaultGridIndexes)];
-	temp = reinterpret_cast<glm::ivec4*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(defaultGridIndexes), GL_MAP_READ_BIT));
+
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, relativePosBuff);
+	//glm::ivec4* temp = new glm::ivec4[sizeof(defaultGridIndexes)];
+	glm::vec4* temp = reinterpret_cast<glm::vec4*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(particlesInitialPos), GL_MAP_READ_BIT));
 	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-	*/
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, forceBuff);
+	//glm::ivec4* temp = new glm::ivec4[sizeof(defaultGridIndexes)];
+	glm::vec4* tempForce = reinterpret_cast<glm::vec4*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(particlesInitialPos), GL_MAP_READ_BIT));
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+	
+
 	reciveBuffer(rigidBodyVelBuff, &RigidBody::linearVelocity);
 	reciveBuffer(rigidBodyAngVelBuff, &RigidBody::angularVelocity);
 

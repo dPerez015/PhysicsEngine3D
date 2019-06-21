@@ -2,7 +2,6 @@
 layout(std430, binding = 0) buffer initialPos{vec4 initPos[];};
 layout(std430, binding = 1) buffer finalPos{vec4 fPos[];};
 layout(std430, binding = 2) buffer finalVel{vec4 fVel[];};
-layout(std430, binding = 3) buffer relativePos{vec4 relPos[];};
 layout(std430, binding = 8) buffer finalForce{vec4 fForce[];};
 layout(std430, binding = 10) buffer theGrid{ivec4 grid[];};
 
@@ -68,7 +67,7 @@ vec3 calculateTerrainForces(uint id){
 
 	return totalForce*isColliding;
 }
-/*
+
 int checkIsValidVoxel(int x, int y, int z){
 	float checkIsSmaller = step(x, 0);
 	float checkIsBigger = step(-x, -gridSize);
@@ -108,13 +107,13 @@ vec4 calculateOtherParticlesForce(int id){
 		}
 	}
 	return totalPartForce;
-}*/
+}
 
 void main(){
 	uint gid = gl_GlobalInvocationID.x;
 	vec4 totalForce = vec4(calculateTerrainForces(gid),0.f);
 	
-	//totalForce += calculateOtherParticlesForce(int(gid));
+	totalForce += calculateOtherParticlesForce(int(gid));
 
 	fForce[gid]= totalForce;
 }

@@ -95,12 +95,13 @@ void ComputeShader::dispatch(float x, float y, float z) {
 
 void ComputeShader::setFloat(const std::string &name, float value) const
 {
-	glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+	GLint location = glGetUniformLocation(ID, name.c_str());
+	glUniform1f(location, value);
 }
 
 void ComputeShader::setInt(const std::string &name, int value) const
 {
-	glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+	glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
 }
 
 ComputeShader::ComputeShader()
