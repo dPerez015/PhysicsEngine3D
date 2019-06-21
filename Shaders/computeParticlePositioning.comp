@@ -7,17 +7,66 @@ layout(std430, binding = 4) buffer rigidbodyPos{vec4 rbPos[];};
 layout(std430, binding = 5) buffer rigidbodyVel{vec4 rbVel[];};
 layout(std430, binding = 6) buffer rigidbodyAngVel{vec4 rbAngVel[];};
 layout(std430, binding = 7) buffer rigidbodyRotation{vec4 rbRot[];};
+layout(std430, binding = 10) buffer theGrid{ivec4 grid[];};
 
 layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 
-vec4 rotateVectorByQuat(vec3 v, vec4 quat){
-	return 2.0f*dot(quat.xyz,v) * quat.xyz + (q.w*q.w - dot(q.xyz,q.xyz))*v + 2.0f * q.w *cross(q.xyz,v);
+uniform float minX;
+uniform float minY;
+uniform float minZ;
+
+uniform float gridVoxelSize;
+uniform int gridSize;
+
+vec3 rotateVectorByQuat(vec3 v, vec4 q){
+	return 2.0f*dot(q.xyz,v) * q.xyz + (q.w*q.w - dot(q.xyz,q.xyz))*v + 2.0f * q.w *cross(q.xyz,v);
 }
 
 void main(){
+//------------ indexes ------------
 	uint gid = gl_GlobalInvocationID.x;
 	uint rbID = int(initPos[gid].w);
-	vec4 clearInitPos = vec4(initPos[gid].xyz,0.f);
-	fPos[gid] = clearInitPos+rbPos[rbId];
+//------------- relative position ------------------
+	vec4 relativePos = vec4(rotateVectorByQuat(initPos[gid].xyz, rbRot[rbID]),1.0f);
+	relPos[gid]=relativePos;
+
+//-------------- absolute position ----------------------- 
+	vec4 finalPos = relativePos+rbPos[rbID];
+	fPos[gid] = finalPos; //el ultimo ha de ser un 1 para que funcione el render de particulas
+
+//-------------- velocity ------------------
+	fVel[gid] = rbVel[rbID] +  vec4(cross(rbAngVel[rbID].xyz,relativePos.xyz),0.f);
+
+
+//--------------- grid ------------------
+	/*int gridX=int(floor((finalPos.x-minX)/gridVoxelSize));
+	float checkIsSmaller = step(gridX, 0);
+	float checkIsBigger = step(-gridX, -gridSize);
+	//gridX = gridX *int(checkIsSmaller * checkIsBigger);
+
+	int gridY=clamp(int(floor((finalPos.y-minY)/gridVoxelSize)),0,gridSize);
+	checkIsSmaller *= step(gridY, 0);
+	checkIsBigger *= step(-gridY, -gridSize);
+	gridY = gridY *int(checkIsSmaller * checkIsBigger);
+
+	int gridZ=clamp(int(floor((finalPos.z-minZ)/gridVoxelSize)),0,gridSize);
+	checkIsSmaller *= step(gridZ, 0);
+	checkIsBigger *= step(-gridZ, -gridSize);
+	gridZ = gridZ * int(checkIsSmaller * checkIsBigger);
+
+	int voxelID = gridX + gridY * gridSize + gridZ*gridSize*gridSize;
+
+	ivec4 previusGridValue = grid[voxelID];
+	int idToInsert = ((int(gid) + 1)* int(checkIsSmaller * checkIsBigger)) - 1;
+
+	previusGridValue = previusGridValue.axyz;
+	int previusId = previusGridValue.a;
+	
+	idToInsert = max(idToInsert, previusId);
+
+	previusGridValue.x = int(idToInsert);
+	
+	grid[gid] = ivec4(gridX,-1,-1,-1);*/
+	
 }
 

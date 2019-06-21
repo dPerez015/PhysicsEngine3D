@@ -34,6 +34,7 @@ void main() {\n\
 	EndPrimitive();\n\
 }";
 
+
 const char* SpherePrim::sphere_fragShader_flatColor =
 "#version 330\n\
 in vec4 eyePos;\n\

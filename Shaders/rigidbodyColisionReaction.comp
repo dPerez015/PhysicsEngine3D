@@ -1,0 +1,35 @@
+#version 430
+layout(std430, binding = 3) buffer relativePos{vec4 relPos[];};
+layout(std430, binding = 5) buffer rigidbodyVel{vec4 rbVel[];};
+layout(std430, binding = 6) buffer rigidbodyAngVel{vec4 rbAngVel[];};
+layout(std430, binding = 8) buffer finalForce{vec4 fForce[];};
+layout(std430, binding = 9) buffer particleIndex{int partIndex[];};
+
+
+layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
+
+uniform float dt;
+
+void main(){
+	uint gid = gl_GlobalInvocationID.x;
+	int initialPartID = partIndex[gid*2];
+	int count = partIndex[(gid*2)+1];
+
+	vec4 totalForce = vec4(0.f,0.f,0.f,0.f);
+	vec3 totalTorque = vec3(0.f,0.f,0.f);
+
+	for(int i = 0; i<count;i++){
+		vec4 particleForce = fForce[initialPartID+i];
+		totalForce+=particleForce;
+		vec4 relativePos=relPos[initialPartID+1];
+		totalTorque += cross(relativePos.xyz,particleForce.xyz); //*step(length(particleForce.xyz),0.0001f)
+	}
+	vec4 initVel = rbVel[gid];
+	rbVel[gid] =  initVel+totalForce *dt;
+
+	vec4 initAngVel = rbAngVel[gid];
+	rbAngVel[gid] = initAngVel+vec4(totalTorque * dt,0.f) ;
+	//rbAngVel[gid] = vec4(totalTorque,0.f);
+
+}
+

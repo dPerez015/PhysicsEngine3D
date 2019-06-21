@@ -21,6 +21,8 @@ public:
 	//void initiateBuffers();
 	void use();
 	void dispatch(float,float,float);
+	void setFloat(const std::string &name, float value) const;
+	void setInt(const std::string &name, int value) const;
 	~ComputeShader();
 };
 

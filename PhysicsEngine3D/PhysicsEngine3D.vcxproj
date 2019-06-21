@@ -180,6 +180,9 @@ xcopy "$(ProjectDir)..\libs\glfw3.dll" "$(OutDir)" /y /d</Command>
   <ItemGroup>
     <None Include="..\Shaders\compute.comp" />
     <None Include="..\Shaders\computeParticlePositioning.comp" />
+    <None Include="..\Shaders\particleColision.comp" />
+    <None Include="..\Shaders\rigidbodyColisionReaction.comp" />
+    <None Include="..\Shaders\rigidbodyUpdate.comp" />
     <None Include="..\Shaders\VoxelGeneration.fs" />
     <None Include="..\Shaders\VoxelGeneration.vs" />
   </ItemGroup>

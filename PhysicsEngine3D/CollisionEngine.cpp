@@ -12,7 +12,11 @@ CollisionEngine::CollisionEngine()
 
 	shader = Shader("../Shaders/VoxelGeneration.vs", "../Shaders/VoxelGeneration.fs");
 
-	particlesVarUpdate = ComputeShader(".. / Shaders / computeParticlePositioning.comp");
+	particlesVarUpdate = ComputeShader("../Shaders/computeParticlePositioning.comp");
+
+	particlesColision = ComputeShader("../Shaders/particleColision.comp");
+
+	rbColisionReaction = ComputeShader("../Shaders/rigidbodyColisionReaction.comp");
 
 	//creamos los buffers de las particulas para los compute shaders
 	//posiciones finales
@@ -33,9 +37,14 @@ CollisionEngine::CollisionEngine()
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, relativePosBuff);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(particlesRelativePos), NULL, GL_STATIC_DRAW);
 
+	//fuerzas producidas
+	glGenBuffers(1, &forceBuff);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, forceBuff);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(particlesForce), NULL, GL_STATIC_DRAW);
+	
+
 	//posiciones iniciales
 	glGenBuffers(1, &initialPosBuff);
-
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, initialPosBuff);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, 1024 * 1024 * sizeof(float)*4, NULL, GL_STATIC_DRAW);
 
@@ -58,6 +67,27 @@ CollisionEngine::CollisionEngine()
 	glGenBuffers(1, &rigidBodyRotationBuff);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, rigidBodyRotationBuff);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, (1024 * 1024 * sizeof(float) * 4) / 64, NULL, GL_STATIC_DRAW);
+
+	//indices de particulas de cada RigidBody
+	glGenBuffers(1, &rigidBodyParticleIndexBuff);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, rigidBodyParticleIndexBuff);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, (1024 * 1024 * sizeof(GLint) *2) / 64, NULL, GL_STATIC_DRAW);
+
+	//grid for particle colisions
+	glGenBuffers(1, &gridBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, gridBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, 64*64*64*sizeof(glm::ivec4), NULL, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+
+	for (int i = 0; i < 64 * 64 * 64 * 4; i++) {
+		defaultGridIndexes[i] = -1;
+	}
+
+
+	ParticleSystem::Setup();
+	particleSystem.Init(finalPosBuff);
 }
 
 
@@ -67,10 +97,32 @@ CollisionEngine::~CollisionEngine()
 }
 
 void CollisionEngine::draw() {
+	//particleSystem.Draw(particlesInitialPos.size());
 	for (auto it = rigidBodies.begin(); it != rigidBodies.end(); ++it) {
 		(*it)->Draw();
 	}
+	
+}
+void CollisionEngine::bufferVector(GLuint buffer, std::vector<glm::vec4>* vector) {
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer);
+	glm::vec4* temp = reinterpret_cast<glm::vec4*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(glm::vec4)*vector->size(), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT));
+	for (auto it = vector->begin(); it != vector->end(); ++it) {
+		*temp++ = (*it);
+	}
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+}
 
+void CollisionEngine::reciveBuffer(GLuint buffer, std::vector<glm::vec4>*vector) {
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer);
+	glm::vec4* temp = new glm::vec4[sizeof(glm::vec4)*vector->size()];
+	int i = 0;
+	temp = reinterpret_cast<glm::vec4*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(glm::vec4)*vector->size(), GL_MAP_READ_BIT));
+	for (auto it = vector->begin(); it != vector->end(); ++it) {
+		*it = temp[i]; 
+		i++;
+	}
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
 void CollisionEngine::update(float dt) {
@@ -81,23 +133,41 @@ void CollisionEngine::update(float dt) {
 
 	//actualizamos los valores de las particulas de los rigidbodies
 	//primero actualizamos los valores de las posiciones iniciales, por si ha aparecido algun nuevo valor.
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, initialPosBuff);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4)*particlesInitialPos.size(), &particlesInitialPos[0], GL_STATIC_DRAW);
+	bufferVector(initialPosBuff, &particlesInitialPos);
 
 	//despues enviamos los datos de los rigidbodies
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, rigidBodyPosBuff);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4)*RigidBody::position.size(), &RigidBody::position[0], GL_STATIC_DRAW);
-	
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, rigidBodyVelBuff);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4)*RigidBody::linearVelocity.size(), &RigidBody::linearVelocity[0], GL_STATIC_DRAW);
+	bufferVector(rigidBodyPosBuff, &RigidBody::position);
 
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, rigidBodyAngVelBuff);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4)*RigidBody::angularVelocity.size(), &RigidBody::angularVelocity[0], GL_STATIC_DRAW);
+	bufferVector(rigidBodyVelBuff, &RigidBody::linearVelocity);
 
+	bufferVector(rigidBodyAngVelBuff, &RigidBody::angularVelocity);
+
+	//I do it this way to ensure apropiate size and layout
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, rigidBodyRotationBuff);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4)*RigidBody::rotation.size(), &RigidBody::rotation[0], GL_STATIC_DRAW);
+	float* tempRotation = reinterpret_cast<float*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(float)*RigidBody::rotation.size()*4, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT));
+	for (auto it = RigidBody::rotation.begin(); it != RigidBody::rotation.end(); ++it) {
+		*tempRotation++ = it->x;
+		*tempRotation++ = it->y;
+		*tempRotation++ = it->z;
+		*tempRotation++ = it->w;	
+	}
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+	
+	//adding the particle indexes information of each RB
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, rigidBodyParticleIndexBuff);
+	GLint* tempIndexes = reinterpret_cast<GLint*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLint)*RigidBody::partIndexes.size(), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT));
+	for (auto it = RigidBody::partIndexes.begin(); it != RigidBody::partIndexes.end(); ++it) {
+		*tempIndexes++ = *it;
+	}
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, gridBuffer);
+	glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_RGBA32I,GL_RED,GL_INT, &defaultGridIndexes);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+	
+	
 
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, initialPosBuff);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, finalPosBuff);
@@ -107,9 +177,45 @@ void CollisionEngine::update(float dt) {
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, rigidBodyVelBuff);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, rigidBodyAngVelBuff);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, rigidBodyRotationBuff);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, forceBuff);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, rigidBodyParticleIndexBuff);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, gridBuffer);
 	
+	
+		
 	particlesVarUpdate.use();
+	particlesVarUpdate.setFloat("minX", -5);
+	particlesVarUpdate.setFloat("minY", 0);
+	particlesVarUpdate.setFloat("minZ", -5);
+	particlesVarUpdate.setFloat("gridVoxelSize", 10.f/64.f);
+	particlesVarUpdate.setInt("gridVoxelSize", 64);
+
 	particlesVarUpdate.dispatch(glm::ceil((float)particlesInitialPos.size() / 128.f), 1.f, 1.f);
+	
+	particlesColision.use();
+	particlesColision.setFloat("springCoef", 20.f);
+	particlesColision.setFloat("dampingCoef", 4.8f);
+	particlesColision.setFloat("shearCoef", 0.3f);
+	particlesColision.setFloat("particleSize", 0.25f);
+	particlesVarUpdate.setFloat("minX", -5);
+	particlesVarUpdate.setFloat("minY", 0);
+	particlesVarUpdate.setFloat("minZ", -5);
+	particlesVarUpdate.setFloat("gridVoxelSize", 10.f / 64.f);
+	particlesVarUpdate.setInt("gridVoxelSize", 64);
+	particlesColision.dispatch(glm::ceil((float)particlesInitialPos.size() / 128.f), 1.f, 1.f);
+	
+	rbColisionReaction.use();
+	rbColisionReaction.setFloat("dt", dt);
+	rbColisionReaction.dispatch(glm::ceil((float)rigidBodies.size() / 128.f), 1.f, 1.f);
+	
+	/*glBindBuffer(GL_SHADER_STORAGE_BUFFER, gridBuffer);
+	glm::ivec4* temp = new glm::ivec4[sizeof(defaultGridIndexes)];
+	temp = reinterpret_cast<glm::ivec4*>(glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, sizeof(defaultGridIndexes), GL_MAP_READ_BIT));
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+	*/
+	reciveBuffer(rigidBodyVelBuff, &RigidBody::linearVelocity);
+	reciveBuffer(rigidBodyAngVelBuff, &RigidBody::angularVelocity);
 
 }
 
@@ -267,9 +373,9 @@ void CollisionEngine::generateParticles(float* vertex,int ammount,RigidBody* rb 
 					int masked = theResult[i*resolution + j].theInt & bitMask;
 					if (masked == bitMask) {
 						glm::vec3 newParticlePos;
-						newParticlePos.x = j * voxelOffset + halfVoxelOffset;
-						newParticlePos.y = i * voxelOffset + halfVoxelOffset;
-						newParticlePos.z = depth * voxelOffset - halfVoxelOffset;
+						newParticlePos.x = minX + j * voxelOffset + halfVoxelOffset;
+						newParticlePos.y =minY + i * voxelOffset + halfVoxelOffset;
+						newParticlePos.z =minZ + depth * voxelOffset - halfVoxelOffset;
 						particlesPos.push_back(newParticlePos);
 					}
 				}
@@ -284,8 +390,11 @@ void CollisionEngine::generateParticles(float* vertex,int ammount,RigidBody* rb 
 	//once we have the particles blueprint, we place them into an array and pass the indexes to the rigidbody
 	std::vector<glm::vec3>* particlesFromRB = &particleBlueprints[type];
 
+	//rb->firstPartID = particlesInitialPos.size();
+	//rb->ammountOfParticles = particlesFromRB->size();
+	rb->addParticleIndexes(particlesInitialPos.size(), particlesFromRB->size());
 	for (auto it = particlesFromRB->begin(); it != particlesFromRB->end(); ++it) {
-		rb->addParticle(particlesInitialPos.size());
+		//rb->addParticle(particlesInitialPos.size());
 		particlesInitialPos.push_back(glm::vec4(*it,(float)rb->id));
 	}
 

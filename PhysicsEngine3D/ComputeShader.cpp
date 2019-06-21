@@ -92,6 +92,17 @@ void ComputeShader::dispatch(float x, float y, float z) {
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	glUseProgram(0);
 }
+
+void ComputeShader::setFloat(const std::string &name, float value) const
+{
+	glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+}
+
+void ComputeShader::setInt(const std::string &name, int value) const
+{
+	glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+}
+
 ComputeShader::ComputeShader()
 {
 }

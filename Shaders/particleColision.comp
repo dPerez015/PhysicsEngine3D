@@ -1,0 +1,121 @@
+#version 430
+layout(std430, binding = 0) buffer initialPos{vec4 initPos[];};
+layout(std430, binding = 1) buffer finalPos{vec4 fPos[];};
+layout(std430, binding = 2) buffer finalVel{vec4 fVel[];};
+layout(std430, binding = 3) buffer relativePos{vec4 relPos[];};
+layout(std430, binding = 8) buffer finalForce{vec4 fForce[];};
+layout(std430, binding = 10) buffer theGrid{ivec4 grid[];};
+
+layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
+
+uniform float springCoef;
+uniform float dampingCoef;
+uniform float shearCoef;
+uniform float particleSize;
+
+//grid
+uniform float minX;
+uniform float minY;
+uniform float minZ;
+
+uniform float gridVoxelSize;
+uniform int gridSize;
+
+
+vec3 computeSpringForce(vec3 relpos, float particleDistance){
+	return -springCoef*(particleSize - particleDistance)*(relpos/particleDistance);
+}
+
+vec3 computeDampingForce(vec3 vel){
+	return dampingCoef * vel; 
+}
+
+vec3 computeShearForce(vec3 tanVel){
+	return shearCoef * tanVel;
+}
+
+vec3 calculateForces(uint id, uint otherid){
+	vec4 thisPartPos = fPos[id];
+	vec4 otherPartPos = fPos[otherid];
+	vec3 relativePos=otherPartPos.xyz-thisPartPos.xyz;
+	
+	float particleDistance = length(relativePos);
+	float isColliding = step((particleSize)-particleDistance,0.f);
+
+	vec3 totalForce=vec3(0,0,0);
+	totalForce += computeSpringForce(relativePos, particleDistance);
+	vec3 relativeVel = fVel[otherid].xyz - fVel[id].xyz;
+	totalForce += computeDampingForce(relativeVel);
+	vec3 tangentialVel = relativeVel - (relativeVel * (relativePos/particleDistance))*(relativePos/particleDistance);
+	totalForce += computeShearForce(tangentialVel);
+	return totalForce*isColliding;
+}
+
+vec3 calculateTerrainForces(uint id){
+	vec4 thisPartPos = fPos[id];
+	vec4 otherPartPos = vec4(thisPartPos.x, 0.f +particleSize , thisPartPos.z,0.f);
+	vec3 relativePos=otherPartPos.xyz-thisPartPos.xyz;
+	
+	float particleDistance = length(relativePos);
+	float isColliding = step(particleDistance-particleSize,0.f);
+
+	vec3 totalForce=vec3(0,0,0);
+	totalForce += computeSpringForce(relativePos, particleDistance);
+	vec3 relativeVel =  - (fVel[id].xyz);
+	totalForce += computeDampingForce(relativeVel);
+	vec3 tangentialVel = relativeVel - (relativeVel * (relativePos/particleDistance))*(relativePos/particleDistance);
+	totalForce += computeShearForce(tangentialVel);
+
+	return totalForce*isColliding;
+}
+/*
+int checkIsValidVoxel(int x, int y, int z){
+	float checkIsSmaller = step(x, 0);
+	float checkIsBigger = step(-x, -gridSize);
+
+	checkIsSmaller *= step(y, 0);
+	checkIsBigger *= step(-y, -gridSize);
+
+	checkIsSmaller *= step(z, 0);
+	checkIsBigger *= step(-z, -gridSize);
+
+	return int(checkIsSmaller * checkIsBigger);
+}
+
+
+vec4 calculateOtherParticlesForce(int id){
+	vec4 totalPartForce = vec4(0.f,0.f,0.f,0.f);
+	vec4 finalPos = fPos[id];
+
+	int gridX=clamp(int(floor((finalPos.x-minX)/gridVoxelSize)),0,gridSize);
+	int gridY=clamp(int(floor((finalPos.y-minY)/gridVoxelSize)),0,gridSize);
+	int gridZ=clamp(int(floor((finalPos.z-minZ)/gridVoxelSize)),0,gridSize);
+
+	for(int i = -1; i>2;i++){
+		for(int j = -1 ; j<2;j++){
+			for(int k = -1 ; k<2;k++){
+				int isValidVoxel = checkIsValidVoxel(gridX + i,gridY+j,gridZ+k);
+				int voxelToCheck =  int (clamp(gridX + i,0,gridVoxelSize) + clamp(gridY+j, 0, gridVoxelSize) * gridSize + clamp(gridZ+k, 0, gridVoxelSize)*gridSize*gridSize);
+				
+				ivec4 indexesToCheck = grid[voxelToCheck];
+				
+				totalPartForce += vec4(calculateForces(id, indexesToCheck.x) * step(indexesToCheck.x,0),0.f)*isValidVoxel;
+				totalPartForce += vec4(calculateForces(id, indexesToCheck.y) * step(indexesToCheck.y,0),0.f)*isValidVoxel;
+				totalPartForce += vec4(calculateForces(id, indexesToCheck.z) * step(indexesToCheck.z,0),0.f)*isValidVoxel;
+				totalPartForce += vec4(calculateForces(id, indexesToCheck.a) * step(indexesToCheck.a,0),0.f)*isValidVoxel;
+
+			}
+		}
+	}
+	return totalPartForce;
+}*/
+
+void main(){
+	uint gid = gl_GlobalInvocationID.x;
+	vec4 totalForce = vec4(calculateTerrainForces(gid),0.f);
+	
+	//totalForce += calculateOtherParticlesForce(int(gid));
+
+	fForce[gid]= totalForce;
+}
+

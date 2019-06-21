@@ -143,7 +143,8 @@ CubePrim::CubePrim()
 	
 	position.push_back(glm::vec4(1.f, 1.f, 0.f, 0.f));
 	linearVelocity.push_back(glm::vec4(0.f, 0.f, 0.f, 0.f));
-	angularVelocity.push_back(glm::vec4(0.f, 0.f, 0.f, 0.f));
+	angularVelocity.push_back(glm::vec4(-1.f, 1.f, 0.f, 0.f));
+	//angularVelocity.push_back(glm::vec4(0.f, 0.f, 0.f, 0.f));
 	rotation.push_back(glm::quat(1.f, 0.f, 0.f, 0.f));
 }
 
@@ -172,8 +173,9 @@ void CubePrim::Setup() {
 	shadersCreated = true;
 }
 
-void CubePrim::addParticle(int id) {
-	particlesIndexes.push_back(id);
+void CubePrim::addParticleIndexes(int id, int count) {
+	partIndexes.push_back(id);
+	partIndexes.push_back(count);
 }
 
 void CubePrim::Cleanup() {

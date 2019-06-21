@@ -72,6 +72,7 @@ void GLResize(int w, int h) {
 BoxPrim* box;
 //extern CubePrim* cube;
 AxisPrim* axis;
+SpherePrim* sphere;
 
 //init rendering
 void GLInit(int width, int height) {
@@ -93,6 +94,7 @@ void GLInit(int width, int height) {
 
 	box = new BoxPrim();
 	axis = new AxisPrim();
+	sphere = new SpherePrim(0.1f, glm::vec3(0.0f,5.f,0.f));
 }
 
 //render
@@ -109,6 +111,7 @@ void GLRender() {
 	//Box::drawCube();
 	box->Draw();
 	axis->Draw();
+	sphere->Draw();
 	//cube->Draw();
 	CollisionEngine::getInstance().draw();
 }

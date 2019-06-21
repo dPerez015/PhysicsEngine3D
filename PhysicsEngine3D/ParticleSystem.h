@@ -13,8 +13,8 @@ public:
 
 	static void Setup();
 	static void Cleanup();
-	void Draw();
-	void Init();
+	void Draw(int count);
+	void Init(GLuint vbo);
 
 	int AddParticle(int rbIndex);
 
@@ -24,8 +24,10 @@ private:
 
 	int numparticles;
 
+	static GLuint program;
+
 	std::vector<glm::vec3> positions;
-	std::vector<int> rigidBodyIndex;
+	//std::vector<int> rigidBodyIndex;
 
 };
 

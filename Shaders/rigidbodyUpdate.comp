@@ -1,0 +1,29 @@
+layout(std430, binding = 4) buffer rigidbodyPos{vec4 rbPos[];};
+layout(std430, binding = 5) buffer rigidbodyVel{vec4 rbVel[];};
+layout(std430, binding = 6) buffer rigidbodyAngVel{vec4 rbAngVel[];};
+layout(std430, binding = 7) buffer rigidbodyRotation{vec4 rbRot[];};
+layout(std430, binding = 8) buffer finalForce{vec4 fForce[];};
+
+layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
+
+uniform float dt;
+
+void main(){
+	uint gid = gl_GlobalInvocationID.x;
+	
+	//veloity
+	vec3 acceleration = fForce[gid] + vec3(0.f,-9.8f,0.f);
+	vec3 velocity = rbVel[gid].xyz;
+	velocity+=acceleration*dt;
+	rbVel[gid] = vec4(velocity,0.f);
+
+	//position
+	rbPos[gid]+=vec4(velocity*dt,0.f)
+
+	//angular velocity
+	vec4 angularVelocity = rbAngVel[gid]; //asumimos que nunca es 0
+	float angle = length(angularVelocity*dt);
+	vec4 quatdq = 
+
+}
+

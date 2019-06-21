@@ -94,7 +94,8 @@ int main() {
 			GLmousecb(ev);
 		}
 
-		PhysicsUpdate(deltaTime);
+		PhysicsUpdate(0.016f);
+		//PhysicsUpdate(deltaTime);
 		GLRender();
 
 		glfwSwapBuffers(window);
